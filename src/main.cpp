@@ -1,19 +1,18 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include <string>
 #include <iostream>
+#include <vector>
 #include <functional>
 #include <math.h>
 
+#include "Camera.hpp"
 #include "ShaderProgram.hpp"
-
-struct ApplicationContext {
-	glm::ivec2 window_dims = { 800, 600 };
-	const std::string window_title = "LearnOGL";
-	bool wireframe_mode = false;
-} context;
+#include "Application.hpp"
 
 void failOnCondition(bool cond, const std::function<void()>& cleanup) {
 	if (cond) {
@@ -23,30 +22,77 @@ void failOnCondition(bool cond, const std::function<void()>& cleanup) {
 }
 
 GLFWwindow* createWindow() {
+
+	auto& context = dlb::ApplicationSingleton::getInstance();
+	auto& window_dims = context.getWindowDims();
+
 	GLFWwindow* window = glfwCreateWindow(
-		context.window_dims.x,
-		context.window_dims.y,
-		context.window_title.c_str(),
+		window_dims.x,
+		window_dims.y,
+		context.getWindowTitle().c_str(),
 		NULL,
 		NULL);
 
 	return window;
 }
 
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
+	// make sure the viewport matches the new window dimensions; note that width and 
+	// height will be significantly larger than specified on retina displays.
+	dlb::ApplicationSingleton::getInstance().setWindowDimsH(height);
+	dlb::ApplicationSingleton::getInstance().setWindowDimsW(width);
+	glViewport(0, 0, width, height);
+}
+
+void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
+{
+
+	auto& context = dlb::ApplicationSingleton::getInstance();
+
+	float xpos = static_cast<float>(xposIn);
+	float ypos = static_cast<float>(yposIn);
+
+	float xoffset = xpos - context.getLastCursor().x;
+	float yoffset = context.getLastCursor().y - ypos; // reversed since y-coordinates go from bottom to top
+	context.setLastCursorX(xpos);
+	context.setLastCursorY(ypos);
+
+	float sensitivity = 0.1f; // change this value to your liking
+	xoffset *= sensitivity;
+	yoffset *= sensitivity;
+
+	context.getCamera().updateDirection(glm::vec2(xoffset, yoffset));
+}
+
 void proccessInput(GLFWwindow* window) {
+
+	auto& context = dlb::ApplicationSingleton::getInstance();
+
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
 		glfwSetWindowShouldClose(window, true);
-	}
-	else if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS) {
+	} else if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS) {
 
-		std::cout << "[WIREFRAME MODE: ]" << context.wireframe_mode << std::endl;
+		std::cout << "[WIREFRAME MODE: ]" << context.getWireframeMode() << std::endl;
 
-		context.wireframe_mode ?
+		context.getWireframeMode() ?
 			glPolygonMode(GL_FRONT_AND_BACK, GL_POLYGON) :
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-		context.wireframe_mode = !context.wireframe_mode;
-	}
+		context.setWireframeMode(!context.getWireframeMode());
+	} else if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) {
+		//std::cout << "[PAUSED]: " << context.paused << std::endl;
+	} else if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+		context.getCamera().goForward();
+	} else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+		context.getCamera().goLeft();
+	} else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+		context.getCamera().goBackwards();
+	} else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+		context.getCamera().goRight();
+	} //else if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+		//context.position.y -= 0.1f;
+	//}
 }
 
 int main() {
@@ -55,6 +101,7 @@ int main() {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	//glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+
 
 	auto window = createWindow();
 	failOnCondition(window == NULL, [] {glfwTerminate(); });
@@ -66,55 +113,87 @@ int main() {
 		return -1;
 	}
 
-	glViewport(0, 0, context.window_dims.x, context.window_dims.y);
+	auto& context = dlb::ApplicationSingleton::getInstance();
+
+	glViewport(0, 0, context.getWindowDims().x, context.getWindowDims().y);
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glEnable(GL_DEPTH_TEST);
 
 #pragma region Callbacks
 	/*
 	* Set the according viewport everytime the user resizes the window
 	*/
-	glfwSetFramebufferSizeCallback(window,
-		[](GLFWwindow* win, int w, int h) {
-			context.window_dims.x = w;
-			context.window_dims.y = h;
-			std::cout << "Resized to: " << w << "X" << h << std::endl;
-			glViewport(0, 0, w, h);
-		});
-
-	/*
-	* Set the window color according to the cursor position
-	*/
-	glfwSetCursorPosCallback(window,
-		[](GLFWwindow* win, double x, double y) {
-			std::cout << "[CURSOR]: (" << x << ";" << y << ")" << std::endl;
-			float red = static_cast<float>(x) / context.window_dims.x;
-			float blue = static_cast<float>(y) / context.window_dims.y;
-			float green = 1.0f;
-
-			glClearColor(red, green, blue, 1.0f);
-		});
+	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+	glfwSetCursorPosCallback(window, mouse_callback);
 #pragma endregion
 
 #pragma region Shader program
 
 	dlb::ShaderProgramBuilder spb{};
 
-	spb.fragmentShader("C:\\Users\\Diego\\Documents\\Code\\cmakeSetup-102a06694aee21c1c2bd32722fd9bcd1c488f2d3\\resources\\fragment.frag")
-		.vertexShader("C:\\Users\\Diego\\Documents\\Code\\cmakeSetup-102a06694aee21c1c2bd32722fd9bcd1c488f2d3\\resources\\vertex.vert");
+	spb
+		.vertexShader("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\vertex.vert")
+		.fragmentShader("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\fragment.frag");
 
 	unsigned int shaderProgram = spb.build();
 #pragma endregion
 
 #pragma region Feeding data to the GPU
 
-	glm::float32 vertices[] = {
-		-0.5f, -0.5f, 0.0f,
-		0.5f, 0.5f, 0.0f,
-		-0.5f, 0.5f, 0.0f,
-		0.5f, -0.5f, 0.0f,
+	float vertices[] = {
+		-0.5f, -0.5f, -0.5f,
+		 0.5f, -0.5f, -0.5f,
+		 0.5f,  0.5f, -0.5f,
+		 0.5f,  0.5f, -0.5f,
+		-0.5f,  0.5f, -0.5f,
+		-0.5f, -0.5f, -0.5f,
+
+		-0.5f, -0.5f,  0.5f,
+		 0.5f, -0.5f,  0.5f,
+		 0.5f,  0.5f,  0.5f,
+		 0.5f,  0.5f,  0.5f,
+		-0.5f,  0.5f,  0.5f,
+		-0.5f, -0.5f,  0.5f,
+
+		-0.5f,  0.5f,  0.5f,
+		-0.5f,  0.5f, -0.5f,
+		-0.5f, -0.5f, -0.5f,
+		-0.5f, -0.5f, -0.5f,
+		-0.5f, -0.5f,  0.5f,
+		-0.5f,  0.5f,  0.5f,
+
+		 0.5f,  0.5f,  0.5f,
+		 0.5f,  0.5f, -0.5f,
+		 0.5f, -0.5f, -0.5f,
+		 0.5f, -0.5f, -0.5f,
+		 0.5f, -0.5f,  0.5f,
+		 0.5f,  0.5f,  0.5f,
+
+		-0.5f, -0.5f, -0.5f,
+		 0.5f, -0.5f, -0.5f,
+		 0.5f, -0.5f,  0.5f,
+		 0.5f, -0.5f,  0.5f,
+		-0.5f, -0.5f,  0.5f,
+		-0.5f, -0.5f, -0.5f,
+
+		-0.5f,  0.5f, -0.5f,
+		 0.5f,  0.5f, -0.5f,
+		 0.5f,  0.5f,  0.5f,
+		 0.5f,  0.5f,  0.5f,
+		-0.5f,  0.5f,  0.5f,
+		-0.5f,  0.5f, -0.5f,
 	};
 
-	glm::uint indices[] = {
-		0, 1, 2,
+	std::vector<glm::vec3> cube_positions{
+		glm::vec3(2.0f,  5.0f, -15.0f),
+		glm::vec3(-1.5f, -2.2f, -2.5f),
+		glm::vec3(-3.8f, -2.0f, -12.3f),
+		glm::vec3(2.4f, -0.4f, -3.5f),
+		glm::vec3(-1.7f,  3.0f, -7.5f),
+		glm::vec3(1.3f, -2.0f, -2.5f),
+		glm::vec3(1.5f,  2.0f, -2.5f),
+		glm::vec3(1.5f,  0.2f, -1.5f),
+		glm::vec3(-1.3f,  1.0f, -1.5f)
 	};
 
 	glm::uint VAO;
@@ -123,17 +202,11 @@ int main() {
 	// Now this VAO will store all the following VBO configuration
 	glBindVertexArray(VAO);
 
-	glm::uint EBO;
-	glGenBuffers(1, &EBO);
-
 	glm::uint VBO;
 	glGenBuffers(1, &VBO);
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
 	/*
 	* Tell OpenGL how to understand the data un the vertex buffer
@@ -149,29 +222,48 @@ int main() {
 	glEnableVertexAttribArray(0);
 #pragma endregion
 
+
 	while (!glfwWindowShouldClose(window)) {
 
 		proccessInput(window);
 
-		glClear(GL_COLOR_BUFFER_BIT);
+		context.updateTime();
+
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 #pragma region Make the GPU draw a triangle
 		glUseProgram(shaderProgram);
 
-
 #pragma region Uniform Manipulation
 
-		float green_val = sin(glfwGetTime());
-		float red_val = cos(glfwGetTime());
-		float blue_val = 0.5f;
+#pragma region Coordinate systems
 
-		int variating_color_location = glGetUniformLocation(shaderProgram, "variatingColor");
-		glUniform3f(variating_color_location, red_val, green_val, blue_val);
+		const glm::mat4& view = context.getCamera().getView();
+		glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)context.getWindowDims().x / (float)context.getWindowDims().y, 0.1f, 100.0f);
+#pragma endregion
+
+		int model_location = glGetUniformLocation(shaderProgram, "model");
+		int view_location = glGetUniformLocation(shaderProgram, "view");
+		int projection_location = glGetUniformLocation(shaderProgram, "projection");
+
+		glUniformMatrix4fv(view_location, 1, GL_FALSE, &view[0][0]);
+		glUniformMatrix4fv(projection_location, 1, GL_FALSE, &projection[0][0]);
 
 #pragma endregion
 
 		glBindVertexArray(VAO);
-		glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(indices[0]), GL_UNSIGNED_INT, 0);
+
+#pragma region Iteratively draw various cubes with diferent positions
+
+		for (const auto& pos : cube_positions) {
+			//glm::mat4 model = glm::rotate(glm::mat4(1.0f), (float)glfwGetTime() * glm::radians(-55.0F), pos);
+			glm::mat4 model = glm::translate(glm::mat4(1.0f), pos);
+			glUniformMatrix4fv(model_location, 1, GL_FALSE, &model[0][0]);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+		}
+
+#pragma endregion
 		glBindVertexArray(0);
 #pragma endregion
 
@@ -186,3 +278,4 @@ int main() {
 	glfwTerminate();
 	return 0;
 }
+

@@ -1,11 +1,10 @@
 #pragma once
 
+
 #include <string>
 #include <vector>
 
 #include <gl/GL.h>
-
-#include "io/FileReader.hpp"
 
 namespace dlb {
 	class ShaderProgramBuilder {
@@ -35,25 +34,8 @@ namespace dlb {
 			return *this;
 		}
 
-		int build() {
-			this->shaderProgram = glCreateProgram();
-
-			for (auto& shader : this->shaders) {
-				shader.shaderId = glCreateShader(shader.type);
-				std::string shaderContent = FileReader::read(shader.path);
-				const char* data = shaderContent.data();
-				glShaderSource(shader.shaderId, 1, &data, NULL);
-				glCompileShader(shader.shaderId);
-				glAttachShader(this->shaderProgram, shader.shaderId);
-			}
-
-			glLinkProgram(shaderProgram);
-
-			for (auto& shader : this->shaders)
-				glDeleteShader(shader.shaderId);
-
-			return this->shaderProgram;
-		}
+		int build();
+		void checkCompileErrors(int current_shader);
 
 	private:
 		std::vector<Shader> shaders;

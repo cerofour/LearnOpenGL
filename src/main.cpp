@@ -4,15 +4,65 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <imgui.h>
+#include "backends/imgui_impl_glfw.h"
+#include "backends/imgui_impl_opengl3.h"
+
 #include <string>
 #include <iostream>
 #include <vector>
 #include <functional>
+#include <format>
 #include <math.h>
 
 #include "Camera.hpp"
 #include "ShaderProgram.hpp"
 #include "Application.hpp"
+#include "Renderable.hpp"
+
+std::vector<float> vertices = {
+	-0.5f, -0.5f, -0.5f, 0.58f, 0.8f, 0.92f,
+	 0.5f, -0.5f, -0.5f, 0.58f, 0.8f, 0.92f,
+	 0.5f,  0.5f, -0.5f, 0.58f, 0.8f, 0.92f,
+	 0.5f,  0.5f, -0.5f, 0.58f, 0.8f, 0.92f,
+	-0.5f,  0.5f, -0.5f, 0.58f, 0.8f, 0.92f,
+	-0.5f, -0.5f, -0.5f, 0.58f, 0.8f, 0.92f,
+
+	-0.5f, -0.5f,  0.5f, 0.58f, 0.8f, 0.92f,
+	 0.5f, -0.5f,  0.5f, 0.58f, 0.8f, 0.92f,
+	 0.5f,  0.5f,  0.5f, 0.58f, 0.8f, 0.92f,
+	 0.5f,  0.5f,  0.5f, 0.58f, 0.8f, 0.92f,
+	-0.5f,  0.5f,  0.5f, 0.58f, 0.8f, 0.92f,
+	-0.5f, -0.5f,  0.5f, 0.58f, 0.8f, 0.92f,
+
+	-0.5f,  0.5f,  0.5f, 0.58f, 0.8f, 0.92f,
+	-0.5f,  0.5f, -0.5f, 0.58f, 0.8f, 0.92f,
+	-0.5f, -0.5f, -0.5f, 0.58f, 0.8f, 0.92f,
+	-0.5f, -0.5f, -0.5f, 0.58f, 0.8f, 0.92f,
+	-0.5f, -0.5f,  0.5f, 0.58f, 0.8f, 0.92f,
+	-0.5f,  0.5f,  0.5f, 0.58f, 0.8f, 0.92f,
+
+	 0.5f,  0.5f,  0.5f, 0.58f, 0.8f, 0.92f,
+	 0.5f,  0.5f, -0.5f, 0.58f, 0.8f, 0.92f,
+	 0.5f, -0.5f, -0.5f, 0.58f, 0.8f, 0.92f,
+	 0.5f, -0.5f, -0.5f, 0.58f, 0.8f, 0.92f,
+	 0.5f, -0.5f,  0.5f, 0.58f, 0.8f, 0.92f,
+	 0.5f,  0.5f,  0.5f, 0.58f, 0.8f, 0.92f,
+
+	-0.5f, -0.5f, -0.5f, 0.58f, 0.8f, 0.92f,
+	 0.5f, -0.5f, -0.5f, 0.58f, 0.8f, 0.92f,
+	 0.5f, -0.5f,  0.5f, 0.58f, 0.8f, 0.92f,
+	 0.5f, -0.5f,  0.5f, 0.58f, 0.8f, 0.92f,
+	-0.5f, -0.5f,  0.5f, 0.58f, 0.8f, 0.92f,
+	-0.5f, -0.5f, -0.5f, 0.58f, 0.8f, 0.92f,
+
+	-0.5f,  0.5f, -0.5f, 0.58f, 0.8, 0.92,
+	 0.5f,  0.5f, -0.5f, 0.58f, 0.8, 0.92,
+	 0.5f,  0.5f,  0.5f, 0.58f, 0.8, 0.92,
+	 0.5f,  0.5f,  0.5f, 0.58f, 0.8, 0.92,
+	-0.5f,  0.5f,  0.5f, 0.58f, 0.8, 0.92,
+	-0.5f,  0.5f, -0.5f, 0.58f, 0.8, 0.92,
+};
 
 void failOnCondition(bool cond, const std::function<void()>& cleanup) {
 	if (cond) {
@@ -119,6 +169,12 @@ int main() {
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	glEnable(GL_DEPTH_TEST);
 
+	// Initialize ImGui
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGui_ImplGlfw_InitForOpenGL(window, true);
+	ImGui_ImplOpenGL3_Init("#version 330");
+
 #pragma region Callbacks
 	/*
 	* Set the according viewport everytime the user resizes the window
@@ -127,153 +183,113 @@ int main() {
 	glfwSetCursorPosCallback(window, mouse_callback);
 #pragma endregion
 
-#pragma region Shader program
-
+#pragma region Shader programs
 	dlb::ShaderProgramBuilder spb{};
 
 	spb
-		.vertexShader("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\vertex.vert")
-		.fragmentShader("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\fragment.frag");
+		.vertexShader("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\light.vert")
+		.fragmentShader("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\light.frag");
 
-	unsigned int shaderProgram = spb.build();
+	const auto block_shaders = spb.build();
+
+	const auto light_source_shaders = dlb::ShaderProgramBuilder()
+		.vertexShader("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\light_source.vert")
+		.fragmentShader("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\light_source.frag")
+		.build();
 #pragma endregion
 
-#pragma region Feeding data to the GPU
+#pragma region Creating renderable objects
 
-	float vertices[] = {
-		-0.5f, -0.5f, -0.5f,
-		 0.5f, -0.5f, -0.5f,
-		 0.5f,  0.5f, -0.5f,
-		 0.5f,  0.5f, -0.5f,
-		-0.5f,  0.5f, -0.5f,
-		-0.5f, -0.5f, -0.5f,
+	dlb::Renderable light_source;
+	glm::vec3 light_source_position{ 7.3f, 0.0f, -10.0f};
+	glm::vec3 light_source_color{ 1.0f, 0.0f, 0.0f };
+	light_source.setShaderProgram(&light_source_shaders);
+	light_source.feedData(std::move(std::vector<float>(vertices)), 36);
+	light_source.configureVertexAttributes(GL_ARRAY_BUFFER, GL_STATIC_DRAW,
+		[] {
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(vertices[0]), NULL);
+			glEnableVertexAttribArray(0);
+			//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(vertices[0]), (void*)(3 * sizeof(float)));
+			//glEnableVertexAttribArray(1);
+		});
 
-		-0.5f, -0.5f,  0.5f,
-		 0.5f, -0.5f,  0.5f,
-		 0.5f,  0.5f,  0.5f,
-		 0.5f,  0.5f,  0.5f,
-		-0.5f,  0.5f,  0.5f,
-		-0.5f, -0.5f,  0.5f,
 
-		-0.5f,  0.5f,  0.5f,
-		-0.5f,  0.5f, -0.5f,
-		-0.5f, -0.5f, -0.5f,
-		-0.5f, -0.5f, -0.5f,
-		-0.5f, -0.5f,  0.5f,
-		-0.5f,  0.5f,  0.5f,
-
-		 0.5f,  0.5f,  0.5f,
-		 0.5f,  0.5f, -0.5f,
-		 0.5f, -0.5f, -0.5f,
-		 0.5f, -0.5f, -0.5f,
-		 0.5f, -0.5f,  0.5f,
-		 0.5f,  0.5f,  0.5f,
-
-		-0.5f, -0.5f, -0.5f,
-		 0.5f, -0.5f, -0.5f,
-		 0.5f, -0.5f,  0.5f,
-		 0.5f, -0.5f,  0.5f,
-		-0.5f, -0.5f,  0.5f,
-		-0.5f, -0.5f, -0.5f,
-
-		-0.5f,  0.5f, -0.5f,
-		 0.5f,  0.5f, -0.5f,
-		 0.5f,  0.5f,  0.5f,
-		 0.5f,  0.5f,  0.5f,
-		-0.5f,  0.5f,  0.5f,
-		-0.5f,  0.5f, -0.5f,
-	};
-
-	std::vector<glm::vec3> cube_positions{
-		glm::vec3(2.0f,  5.0f, -15.0f),
-		glm::vec3(-1.5f, -2.2f, -2.5f),
-		glm::vec3(-3.8f, -2.0f, -12.3f),
-		glm::vec3(2.4f, -0.4f, -3.5f),
-		glm::vec3(-1.7f,  3.0f, -7.5f),
-		glm::vec3(1.3f, -2.0f, -2.5f),
-		glm::vec3(1.5f,  2.0f, -2.5f),
-		glm::vec3(1.5f,  0.2f, -1.5f),
-		glm::vec3(-1.3f,  1.0f, -1.5f)
-	};
-
-	glm::uint VAO;
-	glGenVertexArrays(1, &VAO);
-
-	// Now this VAO will store all the following VBO configuration
-	glBindVertexArray(VAO);
-
-	glm::uint VBO;
-	glGenBuffers(1, &VBO);
-
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-	/*
-	* Tell OpenGL how to understand the data un the vertex buffer
-	* - The first argument is the attribute we want to configure (0), look at the vertex shader were we
-	* configured aPos to have location 0, this attribute will be mapped to aPos.
-	* - The second argument is the amount of components this attribute has = 3
-	* - The third is the type of the argument (Float)
-	* - the fourth argument tells if we want openGL to normalize the data.
-	* - the fifth is the total size of the vertex (3 floats)
-	* - the fourth is the offset (0) in this case because this attribute is just at the start.
-	*/
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(vertices[0]), NULL);
-	glEnableVertexAttribArray(0);
+	dlb::Renderable cube;
+	cube.setShaderProgram(&block_shaders);
+	cube.feedData(std::move(std::vector<float>(vertices)), 36);
+	cube.configureVertexAttributes(GL_ARRAY_BUFFER, GL_STATIC_DRAW,
+		[] {
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(vertices[0]), NULL);
+			glEnableVertexAttribArray(0);
+			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(vertices[0]), (void*)(3 * sizeof(float)));
+			glEnableVertexAttribArray(1);
+		});
 #pragma endregion
-
 
 	while (!glfwWindowShouldClose(window)) {
+		glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)context.getWindowDims().x / (float)context.getWindowDims().y, 0.1f, 100.0f);
 
 		proccessInput(window);
+
+		std::cout << std::format("[CAMERA]: {} {} {}\n",
+			context.getCamera().getDirection().x,
+			context.getCamera().getDirection().y,
+			context.getCamera().getDirection().z);
 
 		context.updateTime();
 
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-#pragma region Make the GPU draw a triangle
-		glUseProgram(shaderProgram);
+#pragma region ImGui Panel
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
 
-#pragma region Uniform Manipulation
-
-#pragma region Coordinate systems
-
-		const glm::mat4& view = context.getCamera().getView();
-		glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)context.getWindowDims().x / (float)context.getWindowDims().y, 0.1f, 100.0f);
+		ImGui::Begin("Light Configuration");
+		ImGui::ColorEdit3("Light Color", glm::value_ptr(light_source_color)); // Adjust light source color
+		ImGui::End();
 #pragma endregion
 
-		int model_location = glGetUniformLocation(shaderProgram, "model");
-		int view_location = glGetUniformLocation(shaderProgram, "view");
-		int projection_location = glGetUniformLocation(shaderProgram, "projection");
+		light_source.render(
+			[&](const dlb::ShaderProgram* sp) {
+				sp->use();
+				sp->setUniform("u_light_color", light_source_color);
+				const glm::mat4 model = glm::translate(glm::mat4(1.0F), light_source_position);
+				const glm::mat4 view = context.getCamera().getView();
 
-		glUniformMatrix4fv(view_location, 1, GL_FALSE, &view[0][0]);
-		glUniformMatrix4fv(projection_location, 1, GL_FALSE, &projection[0][0]);
+				sp->setUniform("u_model", model);
+				sp->setUniform("u_view", view);
+				sp->setUniform("u_projection", projection);
+			}
+		);
 
-#pragma endregion
+		cube.render(
+			[&](const dlb::ShaderProgram* sp) {
+				sp->use();
+				sp->setUniform("u_light_color", light_source_color);
 
-		glBindVertexArray(VAO);
+				const glm::mat4 model = glm::translate(glm::mat4(1.0F), glm::vec3(5.3f, 0.0f, -6.0f));
+				const glm::mat4 view = context.getCamera().getView();
 
-#pragma region Iteratively draw various cubes with diferent positions
+				sp->setUniform("model", model);
+				sp->setUniform("view", view);
+				sp->setUniform("projection", projection);
+			}
+		);
 
-		for (const auto& pos : cube_positions) {
-			//glm::mat4 model = glm::rotate(glm::mat4(1.0f), (float)glfwGetTime() * glm::radians(-55.0F), pos);
-			glm::mat4 model = glm::translate(glm::mat4(1.0f), pos);
-			glUniformMatrix4fv(model_location, 1, GL_FALSE, &model[0][0]);
-			glDrawArrays(GL_TRIANGLES, 0, 36);
-		}
-
-#pragma endregion
-		glBindVertexArray(0);
-#pragma endregion
+		// Render ImGui
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
 
-	glDeleteVertexArrays(1, &VAO);
-	glDeleteBuffers(1, &VBO);
-	glDeleteProgram(shaderProgram);
+	// Cleanup ImGui
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
 
 	glfwTerminate();
 	return 0;

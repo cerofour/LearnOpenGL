@@ -21,47 +21,74 @@
 #include "Renderable.hpp"
 
 std::vector<float> vertices = {
-	-0.5f, -0.5f, -0.5f, 0.58f, 0.8f, 0.92f,  0.0f,  0.0f, -1.0f,
-	 0.5f, -0.5f, -0.5f, 0.58f, 0.8f, 0.92f, 0.0f,  0.0f, -1.0f,
-	 0.5f,  0.5f, -0.5f, 0.58f, 0.8f, 0.92f, 0.0f,  0.0f, -1.0f,
-	 0.5f,  0.5f, -0.5f, 0.58f, 0.8f, 0.92f, 0.0f,  0.0f, -1.0f,
-	-0.5f,  0.5f, -0.5f, 0.58f, 0.8f, 0.92f, 0.0f,  0.0f, -1.0f,
-	-0.5f, -0.5f, -0.5f, 0.58f, 0.8f, 0.92f, 0.0f,  0.0f, -1.0f,
+	-0.5f, -0.5f, -0.5f, 0.0f,  0.0f, -1.0f,
+	 0.5f, -0.5f, -0.5f, 0.0f,  0.0f, -1.0f,
+	 0.5f,  0.5f, -0.5f, 0.0f,  0.0f, -1.0f,
+	 0.5f,  0.5f, -0.5f, 0.0f,  0.0f, -1.0f,
+	-0.5f,  0.5f, -0.5f, 0.0f,  0.0f, -1.0f,
+	-0.5f, -0.5f, -0.5f, 0.0f,  0.0f, -1.0f,
 
-	-0.5f, -0.5f,  0.5f, 0.58f, 0.8f, 0.92f, 0.0f,  0.0f, 1.0f,
-	 0.5f, -0.5f,  0.5f, 0.58f, 0.8f, 0.92f, 0.0f,  0.0f, 1.0f,
-	 0.5f,  0.5f,  0.5f, 0.58f, 0.8f, 0.92f, 0.0f,  0.0f, 1.0f,
-	 0.5f,  0.5f,  0.5f, 0.58f, 0.8f, 0.92f, 0.0f,  0.0f, 1.0f,
-	-0.5f,  0.5f,  0.5f, 0.58f, 0.8f, 0.92f, 0.0f,  0.0f, 1.0f,
-	-0.5f, -0.5f,  0.5f, 0.58f, 0.8f, 0.92f, 0.0f,  0.0f, 1.0f,
+	-0.5f, -0.5f,  0.5f, 0.0f,  0.0f, 1.0f,
+	 0.5f, -0.5f,  0.5f, 0.0f,  0.0f, 1.0f,
+	 0.5f,  0.5f,  0.5f, 0.0f,  0.0f, 1.0f,
+	 0.5f,  0.5f,  0.5f, 0.0f,  0.0f, 1.0f,
+	-0.5f,  0.5f,  0.5f, 0.0f,  0.0f, 1.0f,
+	-0.5f, -0.5f,  0.5f, 0.0f,  0.0f, 1.0f,
 
-	-0.5f,  0.5f,  0.5f, 0.58f, 0.8f, 0.92f, -1.0f,  0.0f,  0.0f,
-	-0.5f,  0.5f, -0.5f, 0.58f, 0.8f, 0.92f, -1.0f,  0.0f,  0.0f,
-	-0.5f, -0.5f, -0.5f, 0.58f, 0.8f, 0.92f, -1.0f,  0.0f,  0.0f,
-	-0.5f, -0.5f, -0.5f, 0.58f, 0.8f, 0.92f, -1.0f,  0.0f,  0.0f,
-	-0.5f, -0.5f,  0.5f, 0.58f, 0.8f, 0.92f, -1.0f,  0.0f,  0.0f,
-	-0.5f,  0.5f,  0.5f, 0.58f, 0.8f, 0.92f, -1.0f,  0.0f,  0.0f,
+	-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+	-0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+	-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+	-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+	-0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+	-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
 
-	 0.5f,  0.5f,  0.5f, 0.58f, 0.8f, 0.92f, 1.0f,  0.0f,  0.0f,
-	 0.5f,  0.5f, -0.5f, 0.58f, 0.8f, 0.92f, 1.0f,  0.0f,  0.0f,
-	 0.5f, -0.5f, -0.5f, 0.58f, 0.8f, 0.92f, 1.0f,  0.0f,  0.0f,
-	 0.5f, -0.5f, -0.5f, 0.58f, 0.8f, 0.92f, 1.0f,  0.0f,  0.0f,
-	 0.5f, -0.5f,  0.5f, 0.58f, 0.8f, 0.92f, 1.0f,  0.0f,  0.0f,
-	 0.5f,  0.5f,  0.5f, 0.58f, 0.8f, 0.92f, 1.0f,  0.0f,  0.0f,
+	 0.5f,  0.5f,  0.5f, 1.0f,  0.0f,  0.0f,
+	 0.5f,  0.5f, -0.5f, 1.0f,  0.0f,  0.0f,
+	 0.5f, -0.5f, -0.5f, 1.0f,  0.0f,  0.0f,
+	 0.5f, -0.5f, -0.5f, 1.0f,  0.0f,  0.0f,
+	 0.5f, -0.5f,  0.5f, 1.0f,  0.0f,  0.0f,
+	 0.5f,  0.5f,  0.5f, 1.0f,  0.0f,  0.0f,
 
-	-0.5f, -0.5f, -0.5f, 0.58f, 0.8f, 0.92f, 0.0f, -1.0f,  0.0f,
-	 0.5f, -0.5f, -0.5f, 0.58f, 0.8f, 0.92f, 0.0f, -1.0f,  0.0f,
-	 0.5f, -0.5f,  0.5f, 0.58f, 0.8f, 0.92f, 0.0f, -1.0f,  0.0f,
-	 0.5f, -0.5f,  0.5f, 0.58f, 0.8f, 0.92f, 0.0f, -1.0f,  0.0f,
-	-0.5f, -0.5f,  0.5f, 0.58f, 0.8f, 0.92f, 0.0f, -1.0f,  0.0f,
-	-0.5f, -0.5f, -0.5f, 0.58f, 0.8f, 0.92f, 0.0f, -1.0f,  0.0f,
+	-0.5f, -0.5f, -0.5f, 0.0f, -1.0f,  0.0f,
+	 0.5f, -0.5f, -0.5f, 0.0f, -1.0f,  0.0f,
+	 0.5f, -0.5f,  0.5f, 0.0f, -1.0f,  0.0f,
+	 0.5f, -0.5f,  0.5f, 0.0f, -1.0f,  0.0f,
+	-0.5f, -0.5f,  0.5f, 0.0f, -1.0f,  0.0f,
+	-0.5f, -0.5f, -0.5f, 0.0f, -1.0f,  0.0f,
 
-	-0.5f,  0.5f, -0.5f, 0.58f, 0.8f, 0.92f, 0.0f,  1.0f,  0.0f,
-	 0.5f,  0.5f, -0.5f, 0.58f, 0.8f, 0.92f, 0.0f,  1.0f,  0.0f,
-	 0.5f,  0.5f,  0.5f, 0.58f, 0.8f, 0.92f, 0.0f,  1.0f,  0.0f,
-	 0.5f,  0.5f,  0.5f, 0.58f, 0.8f, 0.92f, 0.0f,  1.0f,  0.0f,
-	-0.5f,  0.5f,  0.5f, 0.58f, 0.8f, 0.92f, 0.0f,  1.0f,  0.0f,
-	-0.5f,  0.5f, -0.5f, 0.58f, 0.8f, 0.92f, 0.0f,  1.0f,  0.0f
+	-0.5f,  0.5f, -0.5f, 0.0f,  1.0f,  0.0f,
+	 0.5f,  0.5f, -0.5f, 0.0f,  1.0f,  0.0f,
+	 0.5f,  0.5f,  0.5f, 0.0f,  1.0f,  0.0f,
+	 0.5f,  0.5f,  0.5f, 0.0f,  1.0f,  0.0f,
+	-0.5f,  0.5f,  0.5f, 0.0f,  1.0f,  0.0f,
+	-0.5f,  0.5f, -0.5f, 0.0f,  1.0f,  0.0f
+};
+
+dlb::Material materials[] = {
+	{ glm::vec3(0.0215f, 0.1745f, 0.0215f), glm::vec3(0.0215f, 0.1745f, 0.0215f), glm::vec3(0.633f, 0.727811f, 0.633f), 0.6f },   // emerald
+	{ glm::vec3(0.135f, 0.2225f, 0.1575f), glm::vec3(0.54f, 0.89f, 0.63f), glm::vec3(0.316228f, 0.316228f, 0.316228f), 0.1f },   // jade
+	{ glm::vec3(0.05375f, 0.05f, 0.06625f), glm::vec3(0.18275f, 0.17f, 0.22525f), glm::vec3(0.332741f, 0.328634f, 0.346435f), 0.3f },   // obsidian
+	{ glm::vec3(0.25f, 0.20725f, 0.20725f), glm::vec3(1.0f, 0.829f, 0.829f), glm::vec3(0.296648f, 0.296648f, 0.296648f), 0.088f },   // pearl
+	{ glm::vec3(0.1745f, 0.01175f, 0.01175f), glm::vec3(0.61424f, 0.04136f, 0.04136f), glm::vec3(0.727811f, 0.626959f, 0.626959f), 0.6f },   // ruby
+	{ glm::vec3(0.1f, 0.18725f, 0.1745f), glm::vec3(0.396f, 0.74151f, 0.69102f), glm::vec3(0.297254f, 0.30829f, 0.306678f), 0.1f },   // turquoise
+	{ glm::vec3(0.329412f, 0.223529f, 0.027451f), glm::vec3(0.780392f, 0.568627f, 0.113725f), glm::vec3(0.992157f, 0.941176f, 0.807843f), 0.21794872f },   // brass
+	{ glm::vec3(0.2125f, 0.1275f, 0.054f), glm::vec3(0.714f, 0.4284f, 0.18144f), glm::vec3(0.393548f, 0.271906f, 0.166721f), 0.2f },   // bronze
+	{ glm::vec3(0.25f, 0.25f, 0.25f), glm::vec3(0.4f, 0.4f, 0.4f), glm::vec3(0.774597f, 0.774597f, 0.774597f), 0.6f },   // chrome
+	{ glm::vec3(0.19125f, 0.0735f, 0.0225f), glm::vec3(0.7038f, 0.27048f, 0.0828f), glm::vec3(0.256777f, 0.137622f, 0.086014f), 0.1f },   // copper
+	{ glm::vec3(0.24725f, 0.1995f, 0.0745f), glm::vec3(0.75164f, 0.60648f, 0.22648f), glm::vec3(0.628281f, 0.555802f, 0.366065f), 0.4f },   // gold
+	{ glm::vec3(0.19225f, 0.19225f, 0.19225f), glm::vec3(0.50754f, 0.50754f, 0.50754f), glm::vec3(0.508273f, 0.508273f, 0.508273f), 0.4f },   // silver
+	{ glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.01f, 0.01f, 0.01f), glm::vec3(0.50f, 0.50f, 0.50f), 0.25f },   // black plastic
+	{ glm::vec3(0.0f, 0.1f, 0.06f), glm::vec3(0.0f, 0.50980392f, 0.50980392f), glm::vec3(0.50196078f, 0.50196078f, 0.50196078f), 0.25f },   // cyan plastic
+	{ glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.1f, 0.35f, 0.1f), glm::vec3(0.45f, 0.55f, 0.45f), 0.25f },   // green plastic
+	{ glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.5f, 0.0f, 0.0f), glm::vec3(0.7f, 0.6f, 0.6f), 0.25f },   // red plastic
+	{ glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.55f, 0.55f, 0.55f), glm::vec3(0.70f, 0.70f, 0.70f), 0.25f },   // white plastic
+	{ glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.5f, 0.5f, 0.0f), glm::vec3(0.60f, 0.60f, 0.50f), 0.25f },   // yellow plastic
+	{ glm::vec3(0.02f, 0.02f, 0.02f), glm::vec3(0.01f, 0.01f, 0.01f), glm::vec3(0.4f, 0.4f, 0.4f), 0.078125f },   // black rubber
+	{ glm::vec3(0.0f, 0.05f, 0.05f), glm::vec3(0.4f, 0.5f, 0.5f), glm::vec3(0.04f, 0.7f, 0.7f), 0.078125f },   // cyan rubber
+	{ glm::vec3(0.0f, 0.05f, 0.0f), glm::vec3(0.4f, 0.5f, 0.4f), glm::vec3(0.04f, 0.7f, 0.04f), 0.078125f },   // green rubber
+	{ glm::vec3(0.05f, 0.0f, 0.0f), glm::vec3(0.5f, 0.4f, 0.4f), glm::vec3(0.7f, 0.04f, 0.04f), 0.078125f },   // red rubber
+	{ glm::vec3(0.05f, 0.05f, 0.05f), glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0.7f, 0.7f, 0.7f), 0.078125f },   // white rubber
+	{ glm::vec3(0.05f, 0.05f, 0.0f), glm::vec3(0.5f, 0.5f, 0.4f), glm::vec3(0.7f, 0.7f, 0.04f), 0.078125f }    // yellow rubber
 };
 
 void failOnCondition(bool cond, const std::function<void()>& cleanup) {
@@ -204,7 +231,7 @@ int main() {
 
 	spb
 		.vertexShader("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\light.vert")
-		.fragmentShader("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\light.frag");
+		.fragmentShader("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\light-materials.frag");
 
 	const auto block_shaders = spb.build();
 
@@ -217,31 +244,35 @@ int main() {
 #pragma region Creating renderable objects
 
 	dlb::Renderable light_source;
-	glm::vec3 light_source_position{ 7.3f, 0.0f, -10.0f};
+	glm::vec3 light_source_position{ 0.0f, 0.0f, -10.0f};
 	glm::vec3 light_source_color{ 1.0f, 1.0f, 1.0f };
 	light_source.setShaderProgram(&light_source_shaders);
 	light_source.feedData(std::move(std::vector<float>(vertices)), 36);
 	light_source.configureVertexAttributes(GL_ARRAY_BUFFER, GL_STATIC_DRAW,
 		[] {
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(vertices[0]), NULL);
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(vertices[0]), NULL);
 			glEnableVertexAttribArray(0);
 			//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(vertices[0]), (void*)(3 * sizeof(float)));
 			//glEnableVertexAttribArray(1);
 		});
 
-
+	const glm::vec3 base_cube_position{ 0.0f, 0.0f, -3.0f };
 	dlb::Renderable cube;
 	cube.setShaderProgram(&block_shaders);
 	cube.feedData(std::move(std::vector<float>(vertices)), 36);
 	cube.configureVertexAttributes(GL_ARRAY_BUFFER, GL_STATIC_DRAW,
 		[] {
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(vertices[0]), NULL);
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(vertices[0]), NULL);
 			glEnableVertexAttribArray(0);
-			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(vertices[0]), (void*)(3 * sizeof(float)));
+			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(vertices[0]), (void*)(3 * sizeof(float)));
 			glEnableVertexAttribArray(1);
-			glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(vertices[0]), (void*)(6 * sizeof(float)));
-			glEnableVertexAttribArray(2);
 		});
+	cube.setMaterial({
+		glm::vec3(0.0215, 0.1745, 0.0215),
+		glm::vec3(0.07568, 0.61424, 0.07568),
+		glm::vec3(0.633, 0.727811, 0.633),
+		0.6f,
+	});
 #pragma endregion
 
 	float specular_strength = 0.5;
@@ -252,12 +283,6 @@ int main() {
 		glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)context.getWindowDims().x / (float)context.getWindowDims().y, 0.1f, 100.0f);
 
 		proccessInput(window);
-
-		std::cout << std::format("[CAMERA]: {} {} {}\n",
-			context.getCamera().getDirection().x,
-			context.getCamera().getDirection().y,
-			context.getCamera().getDirection().z);
-
 		context.updateTime();
 
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -297,24 +322,28 @@ int main() {
 			}
 		);
 
-		cube.render(
-			[&](const dlb::ShaderProgram* sp) {
-				sp->use();
-				sp->setUniform("u_light_color", light_source_color);
-				sp->setUniform("u_ambient_strength", ambient_strength);
-				sp->setUniform("u_specular_strength", specular_strength);
-				sp->setUniform("u_shininess", shininess);
-				sp->setUniform("u_eye_position", context.getCamera().getPosition());
+		for (int i = 0; i < sizeof(materials) / sizeof(materials[0]); i++) {
 
-				const glm::mat4 model = glm::translate(glm::mat4(1.0F), glm::vec3(5.3f, 0.0f, -6.0f));
-				const glm::mat4 view = context.getCamera().getView();
+			const glm::vec3 position = base_cube_position + glm::vec3((float)(i % 3) + 1.0F, glm::floor((i) / 3.0f) + 1.0f, 0.0f);
 
-				sp->setUniform("model", model);
-				sp->setUniform("view", view);
-				sp->setUniform("projection", projection);
-				sp->setUniform("u_light_position", light_source_position);
-			}
-		);
+			cube.setMaterial(materials[i]);
+			cube.render(
+				[&](const dlb::ShaderProgram* sp) {
+					sp->use();
+					sp->setUniform("u_light_color", light_source_color);
+					sp->setUniform("u_eye_position", context.getCamera().getPosition());
+					sp->setUniform("u_color", glm::vec3(1.0f));
+
+					const glm::mat4 model = glm::translate(glm::mat4(1.0F), position);
+					const glm::mat4 view = context.getCamera().getView();
+
+					sp->setUniform("model", model);
+					sp->setUniform("view", view);
+					sp->setUniform("projection", projection);
+					sp->setUniform("u_light_position", light_source_position);
+				}
+			);
+		}
 
 		// Render ImGui
 		ImGui::Render();

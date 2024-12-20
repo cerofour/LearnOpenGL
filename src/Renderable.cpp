@@ -37,6 +37,14 @@ namespace dlb {
 			assert(shader_program != nullptr && "Shader Program is not defined");
 
 			shader_program->use();
+
+			if (use_material) {
+				shader_program->setUniform("u_material.diffuse", material.diffuse);
+				shader_program->setUniform("u_material.ambient", material.ambient);
+				shader_program->setUniform("u_material.specular", material.specular);
+				shader_program->setUniform("u_material.shininess", material.shininess);
+			}
+
 			glBindVertexArray(vao);
 
 			pre_render(shader_program);

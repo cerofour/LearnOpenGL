@@ -4,6 +4,7 @@
 #include <gl/GL.h>
 
 #include "ShaderProgram.hpp"
+#include "Material.hpp"
 
 namespace dlb {
 
@@ -27,6 +28,14 @@ namespace dlb {
 			shader_program = sp;
 		}
 
+		void setMaterial(const dlb::Material& mat) {
+			material = mat;
+		}
+
+		void setUseMaterial(bool x) {
+			use_material = x;
+		}
+
 	public:
 
 		/*
@@ -45,13 +54,23 @@ namespace dlb {
 		void render(const std::function<void(const dlb::ShaderProgram*)>& pre_render);
 
 	private:
-		GLuint vao,
-			vbo;
+		GLuint vao, vbo;
 
 		bool do_render = true;
+		bool use_material = true;
 
 		int vertices_no;
 		std::vector<float> vertices;
 		const dlb::ShaderProgram* shader_program;
+
+		/*
+		* Default material value
+		*/
+		dlb::Material material{
+			glm::vec3(1.0F),
+			glm::vec3(1.0F),
+			glm::vec3(1.0F),
+			1.0F,
+		};
 	};
 }

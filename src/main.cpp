@@ -21,47 +21,47 @@
 #include "Renderable.hpp"
 
 std::vector<float> vertices = {
-	-0.5f, -0.5f, -0.5f, 0.58f, 0.8f, 0.92f,
-	 0.5f, -0.5f, -0.5f, 0.58f, 0.8f, 0.92f,
-	 0.5f,  0.5f, -0.5f, 0.58f, 0.8f, 0.92f,
-	 0.5f,  0.5f, -0.5f, 0.58f, 0.8f, 0.92f,
-	-0.5f,  0.5f, -0.5f, 0.58f, 0.8f, 0.92f,
-	-0.5f, -0.5f, -0.5f, 0.58f, 0.8f, 0.92f,
+	-0.5f, -0.5f, -0.5f, 0.58f, 0.8f, 0.92f,  0.0f,  0.0f, -1.0f,
+	 0.5f, -0.5f, -0.5f, 0.58f, 0.8f, 0.92f, 0.0f,  0.0f, -1.0f,
+	 0.5f,  0.5f, -0.5f, 0.58f, 0.8f, 0.92f, 0.0f,  0.0f, -1.0f,
+	 0.5f,  0.5f, -0.5f, 0.58f, 0.8f, 0.92f, 0.0f,  0.0f, -1.0f,
+	-0.5f,  0.5f, -0.5f, 0.58f, 0.8f, 0.92f, 0.0f,  0.0f, -1.0f,
+	-0.5f, -0.5f, -0.5f, 0.58f, 0.8f, 0.92f, 0.0f,  0.0f, -1.0f,
 
-	-0.5f, -0.5f,  0.5f, 0.58f, 0.8f, 0.92f,
-	 0.5f, -0.5f,  0.5f, 0.58f, 0.8f, 0.92f,
-	 0.5f,  0.5f,  0.5f, 0.58f, 0.8f, 0.92f,
-	 0.5f,  0.5f,  0.5f, 0.58f, 0.8f, 0.92f,
-	-0.5f,  0.5f,  0.5f, 0.58f, 0.8f, 0.92f,
-	-0.5f, -0.5f,  0.5f, 0.58f, 0.8f, 0.92f,
+	-0.5f, -0.5f,  0.5f, 0.58f, 0.8f, 0.92f, 0.0f,  0.0f, 1.0f,
+	 0.5f, -0.5f,  0.5f, 0.58f, 0.8f, 0.92f, 0.0f,  0.0f, 1.0f,
+	 0.5f,  0.5f,  0.5f, 0.58f, 0.8f, 0.92f, 0.0f,  0.0f, 1.0f,
+	 0.5f,  0.5f,  0.5f, 0.58f, 0.8f, 0.92f, 0.0f,  0.0f, 1.0f,
+	-0.5f,  0.5f,  0.5f, 0.58f, 0.8f, 0.92f, 0.0f,  0.0f, 1.0f,
+	-0.5f, -0.5f,  0.5f, 0.58f, 0.8f, 0.92f, 0.0f,  0.0f, 1.0f,
 
-	-0.5f,  0.5f,  0.5f, 0.58f, 0.8f, 0.92f,
-	-0.5f,  0.5f, -0.5f, 0.58f, 0.8f, 0.92f,
-	-0.5f, -0.5f, -0.5f, 0.58f, 0.8f, 0.92f,
-	-0.5f, -0.5f, -0.5f, 0.58f, 0.8f, 0.92f,
-	-0.5f, -0.5f,  0.5f, 0.58f, 0.8f, 0.92f,
-	-0.5f,  0.5f,  0.5f, 0.58f, 0.8f, 0.92f,
+	-0.5f,  0.5f,  0.5f, 0.58f, 0.8f, 0.92f, -1.0f,  0.0f,  0.0f,
+	-0.5f,  0.5f, -0.5f, 0.58f, 0.8f, 0.92f, -1.0f,  0.0f,  0.0f,
+	-0.5f, -0.5f, -0.5f, 0.58f, 0.8f, 0.92f, -1.0f,  0.0f,  0.0f,
+	-0.5f, -0.5f, -0.5f, 0.58f, 0.8f, 0.92f, -1.0f,  0.0f,  0.0f,
+	-0.5f, -0.5f,  0.5f, 0.58f, 0.8f, 0.92f, -1.0f,  0.0f,  0.0f,
+	-0.5f,  0.5f,  0.5f, 0.58f, 0.8f, 0.92f, -1.0f,  0.0f,  0.0f,
 
-	 0.5f,  0.5f,  0.5f, 0.58f, 0.8f, 0.92f,
-	 0.5f,  0.5f, -0.5f, 0.58f, 0.8f, 0.92f,
-	 0.5f, -0.5f, -0.5f, 0.58f, 0.8f, 0.92f,
-	 0.5f, -0.5f, -0.5f, 0.58f, 0.8f, 0.92f,
-	 0.5f, -0.5f,  0.5f, 0.58f, 0.8f, 0.92f,
-	 0.5f,  0.5f,  0.5f, 0.58f, 0.8f, 0.92f,
+	 0.5f,  0.5f,  0.5f, 0.58f, 0.8f, 0.92f, 1.0f,  0.0f,  0.0f,
+	 0.5f,  0.5f, -0.5f, 0.58f, 0.8f, 0.92f, 1.0f,  0.0f,  0.0f,
+	 0.5f, -0.5f, -0.5f, 0.58f, 0.8f, 0.92f, 1.0f,  0.0f,  0.0f,
+	 0.5f, -0.5f, -0.5f, 0.58f, 0.8f, 0.92f, 1.0f,  0.0f,  0.0f,
+	 0.5f, -0.5f,  0.5f, 0.58f, 0.8f, 0.92f, 1.0f,  0.0f,  0.0f,
+	 0.5f,  0.5f,  0.5f, 0.58f, 0.8f, 0.92f, 1.0f,  0.0f,  0.0f,
 
-	-0.5f, -0.5f, -0.5f, 0.58f, 0.8f, 0.92f,
-	 0.5f, -0.5f, -0.5f, 0.58f, 0.8f, 0.92f,
-	 0.5f, -0.5f,  0.5f, 0.58f, 0.8f, 0.92f,
-	 0.5f, -0.5f,  0.5f, 0.58f, 0.8f, 0.92f,
-	-0.5f, -0.5f,  0.5f, 0.58f, 0.8f, 0.92f,
-	-0.5f, -0.5f, -0.5f, 0.58f, 0.8f, 0.92f,
+	-0.5f, -0.5f, -0.5f, 0.58f, 0.8f, 0.92f, 0.0f, -1.0f,  0.0f,
+	 0.5f, -0.5f, -0.5f, 0.58f, 0.8f, 0.92f, 0.0f, -1.0f,  0.0f,
+	 0.5f, -0.5f,  0.5f, 0.58f, 0.8f, 0.92f, 0.0f, -1.0f,  0.0f,
+	 0.5f, -0.5f,  0.5f, 0.58f, 0.8f, 0.92f, 0.0f, -1.0f,  0.0f,
+	-0.5f, -0.5f,  0.5f, 0.58f, 0.8f, 0.92f, 0.0f, -1.0f,  0.0f,
+	-0.5f, -0.5f, -0.5f, 0.58f, 0.8f, 0.92f, 0.0f, -1.0f,  0.0f,
 
-	-0.5f,  0.5f, -0.5f, 0.58f, 0.8, 0.92,
-	 0.5f,  0.5f, -0.5f, 0.58f, 0.8, 0.92,
-	 0.5f,  0.5f,  0.5f, 0.58f, 0.8, 0.92,
-	 0.5f,  0.5f,  0.5f, 0.58f, 0.8, 0.92,
-	-0.5f,  0.5f,  0.5f, 0.58f, 0.8, 0.92,
-	-0.5f,  0.5f, -0.5f, 0.58f, 0.8, 0.92,
+	-0.5f,  0.5f, -0.5f, 0.58f, 0.8f, 0.92f, 0.0f,  1.0f,  0.0f,
+	 0.5f,  0.5f, -0.5f, 0.58f, 0.8f, 0.92f, 0.0f,  1.0f,  0.0f,
+	 0.5f,  0.5f,  0.5f, 0.58f, 0.8f, 0.92f, 0.0f,  1.0f,  0.0f,
+	 0.5f,  0.5f,  0.5f, 0.58f, 0.8f, 0.92f, 0.0f,  1.0f,  0.0f,
+	-0.5f,  0.5f,  0.5f, 0.58f, 0.8f, 0.92f, 0.0f,  1.0f,  0.0f,
+	-0.5f,  0.5f, -0.5f, 0.58f, 0.8f, 0.92f, 0.0f,  1.0f,  0.0f
 };
 
 void failOnCondition(bool cond, const std::function<void()>& cleanup) {
@@ -185,6 +185,8 @@ int main() {
 	// Initialize ImGui
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
+	auto& io = ImGui::GetIO();
+	io.Fonts->AddFontDefault();
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init("#version 330");
 
@@ -216,12 +218,12 @@ int main() {
 
 	dlb::Renderable light_source;
 	glm::vec3 light_source_position{ 7.3f, 0.0f, -10.0f};
-	glm::vec3 light_source_color{ 1.0f, 0.0f, 0.0f };
+	glm::vec3 light_source_color{ 1.0f, 1.0f, 1.0f };
 	light_source.setShaderProgram(&light_source_shaders);
 	light_source.feedData(std::move(std::vector<float>(vertices)), 36);
 	light_source.configureVertexAttributes(GL_ARRAY_BUFFER, GL_STATIC_DRAW,
 		[] {
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(vertices[0]), NULL);
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(vertices[0]), NULL);
 			glEnableVertexAttribArray(0);
 			//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(vertices[0]), (void*)(3 * sizeof(float)));
 			//glEnableVertexAttribArray(1);
@@ -233,12 +235,18 @@ int main() {
 	cube.feedData(std::move(std::vector<float>(vertices)), 36);
 	cube.configureVertexAttributes(GL_ARRAY_BUFFER, GL_STATIC_DRAW,
 		[] {
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(vertices[0]), NULL);
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(vertices[0]), NULL);
 			glEnableVertexAttribArray(0);
-			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(vertices[0]), (void*)(3 * sizeof(float)));
+			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(vertices[0]), (void*)(3 * sizeof(float)));
 			glEnableVertexAttribArray(1);
+			glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(vertices[0]), (void*)(6 * sizeof(float)));
+			glEnableVertexAttribArray(2);
 		});
 #pragma endregion
+
+	float specular_strength = 0.5;
+	float ambient_strength = 0.5;
+	float shininess = 16.0f;
 
 	while (!glfwWindowShouldClose(window)) {
 		glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)context.getWindowDims().x / (float)context.getWindowDims().y, 0.1f, 100.0f);
@@ -259,15 +267,20 @@ int main() {
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
+		ImGui::SetNextWindowPos(ImVec2(0, 0));
 		ImGui::SetNextWindowSize(ImVec2(300, 500));
 		ImGui::Begin("Light Configuration");
 		ImGui::ColorEdit3("Light Color", glm::value_ptr(light_source_color)); // Adjust light source color
 		ImGui::Text("Position");
-		ImGui::Text(std::format("X: {} Y: {} Z: {}", context.getCamera().getPosition().x, context.getCamera().getPosition().y, context.getCamera().getPosition().z).c_str());
+		ImGui::Text(std::format("X: {} Y: {} Z: {}",
+			context.getCamera().getPosition().x, context.getCamera().getPosition().y, context.getCamera().getPosition().z).c_str());
 		ImGui::Text("Light Source Configuration");
 		ImGui::SliderFloat("X Position", &light_source_position.x, -20.0f, 20.0f);
 		ImGui::SliderFloat("Y Position", &light_source_position.y, -20.0f, 20.0f);
 		ImGui::SliderFloat("Z Position", &light_source_position.z, -20.0f, 20.0f);
+		ImGui::SliderFloat("Ambient Strength", &ambient_strength, -1.0f, 1.0f);
+		ImGui::SliderFloat("Specular Strength", &specular_strength, -1.0f, 1.0f);
+		ImGui::SliderFloat("Shininess", &shininess, 4.0f, 1024.0f);
 		ImGui::End();
 #pragma endregion
 
@@ -275,7 +288,7 @@ int main() {
 			[&](const dlb::ShaderProgram* sp) {
 				sp->use();
 				sp->setUniform("u_light_color", light_source_color);
-				const glm::mat4 model = glm::translate(glm::mat4(1.0F), light_source_position);
+				const glm::mat4 model = glm::scale(glm::translate(glm::mat4(1.0F), light_source_position), glm::vec3(0.1f));
 				const glm::mat4 view = context.getCamera().getView();
 
 				sp->setUniform("u_model", model);
@@ -288,6 +301,10 @@ int main() {
 			[&](const dlb::ShaderProgram* sp) {
 				sp->use();
 				sp->setUniform("u_light_color", light_source_color);
+				sp->setUniform("u_ambient_strength", ambient_strength);
+				sp->setUniform("u_specular_strength", specular_strength);
+				sp->setUniform("u_shininess", shininess);
+				sp->setUniform("u_eye_position", context.getCamera().getPosition());
 
 				const glm::mat4 model = glm::translate(glm::mat4(1.0F), glm::vec3(5.3f, 0.0f, -6.0f));
 				const glm::mat4 view = context.getCamera().getView();
@@ -295,6 +312,7 @@ int main() {
 				sp->setUniform("model", model);
 				sp->setUniform("view", view);
 				sp->setUniform("projection", projection);
+				sp->setUniform("u_light_position", light_source_position);
 			}
 		);
 

@@ -119,30 +119,44 @@ void proccessInput(GLFWwindow* window) {
 
 	auto& context = dlb::ApplicationSingleton::getInstance();
 
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-		glfwSetWindowShouldClose(window, true);
-	} else if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS) {
+	auto& io = ImGui::GetIO();
 
-		std::cout << "[WIREFRAME MODE: ]" << context.getWireframeMode() << std::endl;
+	if (io.WantCaptureMouse) {
+		// Enable the cursor when ImGui is capturing input
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+	} else {
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+			glfwSetWindowShouldClose(window, true);
+		}
+		else if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS) {
 
-		context.getWireframeMode() ?
-			glPolygonMode(GL_FRONT_AND_BACK, GL_POLYGON) :
-			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+			std::cout << "[WIREFRAME MODE: ]" << context.getWireframeMode() << std::endl;
 
-		context.setWireframeMode(!context.getWireframeMode());
-	} else if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) {
-		//std::cout << "[PAUSED]: " << context.paused << std::endl;
-	} else if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-		context.getCamera().goForward();
-	} else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-		context.getCamera().goLeft();
-	} else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-		context.getCamera().goBackwards();
-	} else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-		context.getCamera().goRight();
-	} //else if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
-		//context.position.y -= 0.1f;
-	//}
+			context.getWireframeMode() ?
+				glPolygonMode(GL_FRONT_AND_BACK, GL_POLYGON) :
+				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+			context.setWireframeMode(!context.getWireframeMode());
+		}
+		else if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) {
+			//std::cout << "[PAUSED]: " << context.paused << std::endl;
+		}
+		else if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+			context.getCamera().goForward();
+		}
+		else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+			context.getCamera().goLeft();
+		}
+		else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+			context.getCamera().goBackwards();
+		}
+		else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+			context.getCamera().goRight();
+		} //else if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+			//context.position.y -= 0.1f;
+		//}
+	}
 }
 
 int main() {
@@ -166,7 +180,6 @@ int main() {
 	auto& context = dlb::ApplicationSingleton::getInstance();
 
 	glViewport(0, 0, context.getWindowDims().x, context.getWindowDims().y);
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	glEnable(GL_DEPTH_TEST);
 
 	// Initialize ImGui
@@ -180,6 +193,7 @@ int main() {
 	* Set the according viewport everytime the user resizes the window
 	*/
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+	glfwMaximizeWindow(window);
 	glfwSetCursorPosCallback(window, mouse_callback);
 #pragma endregion
 
@@ -245,9 +259,15 @@ int main() {
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
-
+		ImGui::SetNextWindowSize(ImVec2(300, 500));
 		ImGui::Begin("Light Configuration");
 		ImGui::ColorEdit3("Light Color", glm::value_ptr(light_source_color)); // Adjust light source color
+		ImGui::Text("Position");
+		ImGui::Text(std::format("X: {} Y: {} Z: {}", context.getCamera().getPosition().x, context.getCamera().getPosition().y, context.getCamera().getPosition().z).c_str());
+		ImGui::Text("Light Source Configuration");
+		ImGui::SliderFloat("X Position", &light_source_position.x, -20.0f, 20.0f);
+		ImGui::SliderFloat("Y Position", &light_source_position.y, -20.0f, 20.0f);
+		ImGui::SliderFloat("Z Position", &light_source_position.z, -20.0f, 20.0f);
 		ImGui::End();
 #pragma endregion
 

@@ -8,6 +8,8 @@
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
 
+#include <stb_image/stb_image.h>
+
 #include <string>
 #include <iostream>
 #include <vector>
@@ -19,49 +21,52 @@
 #include "ShaderProgram.hpp"
 #include "Application.hpp"
 #include "Renderable.hpp"
+#include "FileReader.hpp"
+#include "Texture.hpp"
 
-std::vector<float> vertices = {
-	-0.5f, -0.5f, -0.5f, 0.0f,  0.0f, -1.0f,
-	 0.5f, -0.5f, -0.5f, 0.0f,  0.0f, -1.0f,
-	 0.5f,  0.5f, -0.5f, 0.0f,  0.0f, -1.0f,
-	 0.5f,  0.5f, -0.5f, 0.0f,  0.0f, -1.0f,
-	-0.5f,  0.5f, -0.5f, 0.0f,  0.0f, -1.0f,
-	-0.5f, -0.5f, -0.5f, 0.0f,  0.0f, -1.0f,
+std::vector<float> vertices {
+	// positions          // normals           // texture coords
+	-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
+	 0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 0.0f,
+	 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
+	 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
+	-0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 1.0f,
+	-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
 
-	-0.5f, -0.5f,  0.5f, 0.0f,  0.0f, 1.0f,
-	 0.5f, -0.5f,  0.5f, 0.0f,  0.0f, 1.0f,
-	 0.5f,  0.5f,  0.5f, 0.0f,  0.0f, 1.0f,
-	 0.5f,  0.5f,  0.5f, 0.0f,  0.0f, 1.0f,
-	-0.5f,  0.5f,  0.5f, 0.0f,  0.0f, 1.0f,
-	-0.5f, -0.5f,  0.5f, 0.0f,  0.0f, 1.0f,
+	-0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 0.0f,
+	 0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 0.0f,
+	 0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 1.0f,
+	 0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 1.0f,
+	-0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 1.0f,
+	-0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 0.0f,
 
-	-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-	-0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-	-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-	-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-	-0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-	-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+	-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
+	-0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
+	-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+	-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+	-0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
+	-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
 
-	 0.5f,  0.5f,  0.5f, 1.0f,  0.0f,  0.0f,
-	 0.5f,  0.5f, -0.5f, 1.0f,  0.0f,  0.0f,
-	 0.5f, -0.5f, -0.5f, 1.0f,  0.0f,  0.0f,
-	 0.5f, -0.5f, -0.5f, 1.0f,  0.0f,  0.0f,
-	 0.5f, -0.5f,  0.5f, 1.0f,  0.0f,  0.0f,
-	 0.5f,  0.5f,  0.5f, 1.0f,  0.0f,  0.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
+	 0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
+	 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+	 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+	 0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
 
-	-0.5f, -0.5f, -0.5f, 0.0f, -1.0f,  0.0f,
-	 0.5f, -0.5f, -0.5f, 0.0f, -1.0f,  0.0f,
-	 0.5f, -0.5f,  0.5f, 0.0f, -1.0f,  0.0f,
-	 0.5f, -0.5f,  0.5f, 0.0f, -1.0f,  0.0f,
-	-0.5f, -0.5f,  0.5f, 0.0f, -1.0f,  0.0f,
-	-0.5f, -0.5f, -0.5f, 0.0f, -1.0f,  0.0f,
+	-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
+	 0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 1.0f,
+	 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
+	 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
+	-0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 0.0f,
+	-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
 
-	-0.5f,  0.5f, -0.5f, 0.0f,  1.0f,  0.0f,
-	 0.5f,  0.5f, -0.5f, 0.0f,  1.0f,  0.0f,
-	 0.5f,  0.5f,  0.5f, 0.0f,  1.0f,  0.0f,
-	 0.5f,  0.5f,  0.5f, 0.0f,  1.0f,  0.0f,
-	-0.5f,  0.5f,  0.5f, 0.0f,  1.0f,  0.0f,
-	-0.5f,  0.5f, -0.5f, 0.0f,  1.0f,  0.0f
+	-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f,
+	 0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f,
+	 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
+	 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
+	-0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f,
+	-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f
 };
 
 dlb::Material materials[] = {
@@ -231,7 +236,7 @@ int main() {
 
 	spb
 		.vertexShader("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\light.vert")
-		.fragmentShader("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\light-materials.frag");
+		.fragmentShader("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\light.frag");
 
 	const auto block_shaders = spb.build();
 
@@ -241,43 +246,69 @@ int main() {
 		.build();
 #pragma endregion
 
+#pragma region Texture2DGroup Loading
+
+	stbi_set_flip_vertically_on_load(true);
+
+	auto container_texture = dlb::Texture2DGroupBuilder()
+		.configure_new()
+		.path("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\redstone-lamp.png")
+		.build();
+#pragma endregion
+
 #pragma region Creating renderable objects
 
+	const std::vector<glm::vec3> positions = {
+		glm::vec3(0.0f,  0.0f,  0.0f),
+		glm::vec3(2.0f,  5.0f, -15.0f),
+		glm::vec3(-1.5f, -2.2f, -2.5f),
+		glm::vec3(-3.8f, -2.0f, -12.3f),
+		glm::vec3(2.4f, -0.4f, -3.5f),
+		glm::vec3(-1.7f,  3.0f, -7.5f),
+		glm::vec3(1.3f, -2.0f, -2.5f),
+		glm::vec3(1.5f,  2.0f, -2.5f),
+		glm::vec3(1.5f,  0.2f, -1.5f),
+		glm::vec3(-1.3f,  1.0f, -1.5f)
+	};
+
 	dlb::Renderable light_source;
-	glm::vec3 light_source_position{ 0.0f, 0.0f, -10.0f};
+	glm::vec3 light_source_position{ 0.0f, 0.0f, -10.0f };
 	glm::vec3 light_source_color{ 1.0f, 1.0f, 1.0f };
 	light_source.setShaderProgram(&light_source_shaders);
 	light_source.feedData(std::move(std::vector<float>(vertices)), 36);
 	light_source.configureVertexAttributes(GL_ARRAY_BUFFER, GL_STATIC_DRAW,
 		[] {
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(vertices[0]), NULL);
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(vertices[0]), NULL);
 			glEnableVertexAttribArray(0);
 			//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(vertices[0]), (void*)(3 * sizeof(float)));
 			//glEnableVertexAttribArray(1);
 		});
 
-	const glm::vec3 base_cube_position{ 0.0f, 0.0f, -3.0f };
 	dlb::Renderable cube;
 	cube.setShaderProgram(&block_shaders);
 	cube.feedData(std::move(std::vector<float>(vertices)), 36);
 	cube.configureVertexAttributes(GL_ARRAY_BUFFER, GL_STATIC_DRAW,
 		[] {
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(vertices[0]), NULL);
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(vertices[0]), NULL);
 			glEnableVertexAttribArray(0);
-			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(vertices[0]), (void*)(3 * sizeof(float)));
+			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(vertices[0]), (void*)(3 * sizeof(float)));
 			glEnableVertexAttribArray(1);
+			glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(vertices[0]), (void*)(6 * sizeof(float)));
+			glEnableVertexAttribArray(2);
 		});
-	cube.setMaterial({
-		glm::vec3(0.0215, 0.1745, 0.0215),
-		glm::vec3(0.07568, 0.61424, 0.07568),
-		glm::vec3(0.633, 0.727811, 0.633),
-		0.6f,
-	});
+	cube.setMaterial(materials[0]);
+	cube.setUseMaterial(false);
+	cube.setTextures(&container_texture);
 #pragma endregion
 
+
+#pragma region Scene Configuration
 	float specular_strength = 0.5;
 	float ambient_strength = 0.5;
 	float shininess = 16.0f;
+
+	glm::vec3 bg_color{ 0.0f };
+#pragma endregion
 
 	while (!glfwWindowShouldClose(window)) {
 		glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)context.getWindowDims().x / (float)context.getWindowDims().y, 0.1f, 100.0f);
@@ -285,7 +316,7 @@ int main() {
 		proccessInput(window);
 		context.updateTime();
 
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClearColor(bg_color.r, bg_color.g, bg_color.b, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 #pragma region ImGui Panel
@@ -294,11 +325,20 @@ int main() {
 		ImGui::NewFrame();
 		ImGui::SetNextWindowPos(ImVec2(0, 0));
 		ImGui::SetNextWindowSize(ImVec2(300, 500));
-		ImGui::Begin("Light Configuration");
-		ImGui::ColorEdit3("Light Color", glm::value_ptr(light_source_color)); // Adjust light source color
-		ImGui::Text("Position");
+		ImGui::Begin("Scene Configuration");
+
+
+		ImGui::Text(std::format("FPS: {}/{}",
+			context.getFrames(), 1000.0f / (float)context.getFrames()).c_str());
+
 		ImGui::Text(std::format("X: {} Y: {} Z: {}",
 			context.getCamera().getPosition().x, context.getCamera().getPosition().y, context.getCamera().getPosition().z).c_str());
+
+		ImGui::ColorEdit3("Bg Color", glm::value_ptr(bg_color)); // Adjust light source color
+
+		ImGui::Text("Light Configuration");
+		ImGui::ColorEdit3("Light Color", glm::value_ptr(light_source_color)); // Adjust light source color
+
 		ImGui::Text("Light Source Configuration");
 		ImGui::SliderFloat("X Position", &light_source_position.x, -20.0f, 20.0f);
 		ImGui::SliderFloat("Y Position", &light_source_position.y, -20.0f, 20.0f);
@@ -310,7 +350,7 @@ int main() {
 #pragma endregion
 
 		light_source.render(
-			[&](const dlb::ShaderProgram* sp) {
+			[&](const dlb::ShaderProgram* sp, dlb::Texture2DGroup* _) {
 				sp->use();
 				sp->setUniform("u_light_color", light_source_color);
 				const glm::mat4 model = glm::scale(glm::translate(glm::mat4(1.0F), light_source_position), glm::vec3(0.1f));
@@ -319,30 +359,34 @@ int main() {
 				sp->setUniform("u_model", model);
 				sp->setUniform("u_view", view);
 				sp->setUniform("u_projection", projection);
-			}
-		);
+			});
 
-		for (int i = 0; i < sizeof(materials) / sizeof(materials[0]); i++) {
-
-			const glm::vec3 position = base_cube_position + glm::vec3((float)(i % 3) + 1.0F, glm::floor((i) / 3.0f) + 1.0f, 0.0f);
-
-			cube.setMaterial(materials[i]);
+		for (int i = 0; i < positions.size(); i++) {
 			cube.render(
-				[&](const dlb::ShaderProgram* sp) {
-					sp->use();
-					sp->setUniform("u_light_color", light_source_color);
-					sp->setUniform("u_eye_position", context.getCamera().getPosition());
-					sp->setUniform("u_color", glm::vec3(1.0f));
+				[&](const dlb::ShaderProgram* sp, dlb::Texture2DGroup* texs) {
 
-					const glm::mat4 model = glm::translate(glm::mat4(1.0F), position);
+					const float angle = 20.0f * i;
+					const glm::mat4 model = glm::rotate(
+						glm::translate(glm::mat4(1.0F), positions[i]),
+						glm::radians(angle),
+						glm::vec3(1.0f, 0.3f, 0.5f));
 					const glm::mat4 view = context.getCamera().getView();
 
+					texs->use();
+					sp->use();
+					for (int i = 0; i < texs->getTextures().size(); i++)
+						sp->setUniform(std::format("tex{}", i), i);
+					sp->setUniform("u_light_color", light_source_color);
+					sp->setUniform("u_light_position", light_source_position);
+					sp->setUniform("u_eye_position", context.getCamera().getPosition());
+					sp->setUniform("u_color", glm::vec3(0.89f, 0.2f, 0.63f));
+					sp->setUniform("u_ambient_strength", ambient_strength);
+					sp->setUniform("u_specular_strength", specular_strength);
+					sp->setUniform("u_shininess", shininess);
 					sp->setUniform("model", model);
 					sp->setUniform("view", view);
 					sp->setUniform("projection", projection);
-					sp->setUniform("u_light_position", light_source_position);
-				}
-			);
+				});
 		}
 
 		// Render ImGui

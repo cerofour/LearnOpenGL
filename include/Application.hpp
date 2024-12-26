@@ -77,6 +77,10 @@ namespace dlb {
 			last_cursor_pos.y = val;
 		}
 
+		int getFrames() {
+			return frames;
+		}
+
 		void updateTime();
 
 	private:
@@ -86,9 +90,12 @@ namespace dlb {
 
 		double delta_time;
 		double last_frame;
+		double last_time = 0.0F;
 
 		dlb::Camera camera;
 
 		bool wireframe_mode;
+
+		int frames = 0;
 	};
 }

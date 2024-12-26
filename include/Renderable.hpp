@@ -5,6 +5,7 @@
 
 #include "ShaderProgram.hpp"
 #include "Material.hpp"
+#include "Texture.hpp"
 
 namespace dlb {
 
@@ -15,7 +16,7 @@ namespace dlb {
 	*/
 	class Renderable {
 	public:
-		Renderable();
+		Renderable(bool _use_ebo = false);
 		~Renderable();
 
 	public:
@@ -36,6 +37,18 @@ namespace dlb {
 			use_material = x;
 		}
 
+		void useEBO(bool x) {
+			use_ebo = x;
+		}
+
+		void setIndices(std::vector<GLuint>&& idx) {
+			indices = std::move(idx);
+		}
+
+		void setTextures(Texture2DGroup* textures) {
+			this->textures = textures;
+		}
+
 	public:
 
 		/*
@@ -51,17 +64,19 @@ namespace dlb {
 		*/
 		void configureVertexAttributes(GLenum target, GLenum usage, const std::function<void(void)>& configuration);
 
-		void render(const std::function<void(const dlb::ShaderProgram*)>& pre_render);
+		void render(const std::function<void(const dlb::ShaderProgram*, dlb::Texture2DGroup*)>& pre_render);
 
 	private:
-		GLuint vao, vbo;
+		GLuint vao, vbo, ebo;
 
 		bool do_render = true;
 		bool use_material = true;
+		bool use_ebo = false;
 
 		int vertices_no;
 		std::vector<float> vertices;
 		const dlb::ShaderProgram* shader_program;
+		std::vector<GLuint> indices;
 
 		/*
 		* Default material value
@@ -72,5 +87,7 @@ namespace dlb {
 			glm::vec3(1.0F),
 			1.0F,
 		};
+
+		dlb::Texture2DGroup* textures = nullptr;
 	};
 }

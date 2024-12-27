@@ -235,8 +235,8 @@ int main() {
 	dlb::ShaderProgramBuilder spb{};
 
 	spb
-		.vertexShader("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\light.vert")
-		.fragmentShader("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\light.frag");
+		.vertexShader("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\light-maps.vert")
+		.fragmentShader("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\light-maps.frag");
 
 	const auto block_shaders = spb.build();
 
@@ -252,7 +252,11 @@ int main() {
 
 	auto container_texture = dlb::Texture2DGroupBuilder()
 		.configure_new()
-		.path("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\redstone-lamp.png")
+		.path("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\container2.png")
+		.configure_new()
+		.path("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\container2_specular.png")
+		.configure_new()
+		.path("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\matrix.jpg")
 		.build();
 #pragma endregion
 
@@ -272,8 +276,10 @@ int main() {
 	};
 
 	dlb::Renderable light_source;
-	glm::vec3 light_source_position{ 0.0f, 0.0f, -10.0f };
-	glm::vec3 light_source_color{ 1.0f, 1.0f, 1.0f };
+	glm::vec3 light_source_position{ 0.0f, 5.0f, -10.0f };
+	glm::vec3 light_specular{ 1.0f };
+	glm::vec3 light_diffuse{ 0.5f };
+	glm::vec3 light_ambient{ 0.2f };
 	light_source.setShaderProgram(&light_source_shaders);
 	light_source.feedData(std::move(std::vector<float>(vertices)), 36);
 	light_source.configureVertexAttributes(GL_ARRAY_BUFFER, GL_STATIC_DRAW,
@@ -300,7 +306,6 @@ int main() {
 	cube.setUseMaterial(false);
 	cube.setTextures(&container_texture);
 #pragma endregion
-
 
 #pragma region Scene Configuration
 	float specular_strength = 0.5;
@@ -337,14 +342,14 @@ int main() {
 		ImGui::ColorEdit3("Bg Color", glm::value_ptr(bg_color)); // Adjust light source color
 
 		ImGui::Text("Light Configuration");
-		ImGui::ColorEdit3("Light Color", glm::value_ptr(light_source_color)); // Adjust light source color
+		ImGui::ColorEdit3("Ambient", glm::value_ptr(light_ambient)); // Adjust light source color
+		ImGui::ColorEdit3("Diffuse", glm::value_ptr(light_diffuse)); // Adjust light source color
+		ImGui::ColorEdit3("Specular", glm::value_ptr(light_specular)); // Adjust light source color
 
 		ImGui::Text("Light Source Configuration");
 		ImGui::SliderFloat("X Position", &light_source_position.x, -20.0f, 20.0f);
 		ImGui::SliderFloat("Y Position", &light_source_position.y, -20.0f, 20.0f);
 		ImGui::SliderFloat("Z Position", &light_source_position.z, -20.0f, 20.0f);
-		ImGui::SliderFloat("Ambient Strength", &ambient_strength, -1.0f, 1.0f);
-		ImGui::SliderFloat("Specular Strength", &specular_strength, -1.0f, 1.0f);
 		ImGui::SliderFloat("Shininess", &shininess, 4.0f, 1024.0f);
 		ImGui::End();
 #pragma endregion
@@ -352,7 +357,11 @@ int main() {
 		light_source.render(
 			[&](const dlb::ShaderProgram* sp, dlb::Texture2DGroup* _) {
 				sp->use();
-				sp->setUniform("u_light_color", light_source_color);
+
+				light_source_position.x = cos(glfwGetTime()) * 20.0F;
+				light_source_position.z = sin(glfwGetTime()) * 20.0F;
+
+				sp->setUniform("u_light_color", glm::vec3(1.0f));
 				const glm::mat4 model = glm::scale(glm::translate(glm::mat4(1.0F), light_source_position), glm::vec3(0.1f));
 				const glm::mat4 view = context.getCamera().getView();
 
@@ -374,18 +383,24 @@ int main() {
 
 					texs->use();
 					sp->use();
-					for (int i = 0; i < texs->getTextures().size(); i++)
-						sp->setUniform(std::format("tex{}", i), i);
-					sp->setUniform("u_light_color", light_source_color);
-					sp->setUniform("u_light_position", light_source_position);
+
+					sp->setUniform("u_material.diffuse", 0);
+					sp->setUniform("u_material.specular", 1);
+					sp->setUniform("u_material.emission", 2);
+					sp->setUniform("u_material.shininess", shininess);
+					sp->setUniform("u_material.specular", glm::vec3(0.5f));
+
+					sp->setUniform("u_light.ambient", light_ambient);
+					sp->setUniform("u_light.diffuse", light_diffuse);
+					sp->setUniform("u_light.specular", light_specular);
+					sp->setUniform("u_light.position", light_source_position);
+
 					sp->setUniform("u_eye_position", context.getCamera().getPosition());
-					sp->setUniform("u_color", glm::vec3(0.89f, 0.2f, 0.63f));
-					sp->setUniform("u_ambient_strength", ambient_strength);
-					sp->setUniform("u_specular_strength", specular_strength);
-					sp->setUniform("u_shininess", shininess);
-					sp->setUniform("model", model);
-					sp->setUniform("view", view);
-					sp->setUniform("projection", projection);
+					sp->setUniform("u_time", (float)glfwGetTime());
+
+					sp->setUniform("u_model", model);
+					sp->setUniform("u_view", view);
+					sp->setUniform("u_projection", projection);
 				});
 		}
 

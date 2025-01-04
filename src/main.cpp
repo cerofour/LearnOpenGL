@@ -235,14 +235,14 @@ int main() {
 	dlb::ShaderProgramBuilder spb{};
 
 	spb
-		.vertexShader("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\light-maps.vert")
-		.fragmentShader("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\light-maps.frag");
+		.vertexShader("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\shaders\\multiple-light.vert")
+		.fragmentShader("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\shaders\\multiple-light.frag");
 
 	const auto block_shaders = spb.build();
 
 	const auto light_source_shaders = dlb::ShaderProgramBuilder()
-		.vertexShader("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\light_source.vert")
-		.fragmentShader("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\light_source.frag")
+		.vertexShader("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\shaders\\light_source.vert")
+		.fragmentShader("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\shaders\\light_source.frag")
 		.build();
 #pragma endregion
 
@@ -250,19 +250,24 @@ int main() {
 
 	stbi_set_flip_vertically_on_load(true);
 
+	auto light_source_texture = dlb::Texture2DGroupBuilder()
+		.configure_new()
+		.path("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\img\\redstone-lamp.png")
+		.configure_new()
+		.path("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\img\\redstone-lamp-specular.png")
+		.build();
+
 	auto container_texture = dlb::Texture2DGroupBuilder()
 		.configure_new()
 		.path("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\container2.png")
 		.configure_new()
 		.path("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\container2_specular.png")
-		.configure_new()
-		.path("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\matrix.jpg")
 		.build();
 #pragma endregion
 
 #pragma region Creating renderable objects
 
-	const std::vector<glm::vec3> positions = {
+	std::vector<glm::vec3> positions {
 		glm::vec3(0.0f,  0.0f,  0.0f),
 		glm::vec3(2.0f,  5.0f, -15.0f),
 		glm::vec3(-1.5f, -2.2f, -2.5f),
@@ -275,8 +280,14 @@ int main() {
 		glm::vec3(-1.3f,  1.0f, -1.5f)
 	};
 
+	/*
+	for (int i = 0; i < 16; i++)
+		for (int j = 0; j < 16; j++)
+			positions.push_back(glm::vec3(1.0f * i, 0.0f, 1.0f * j));
+	*/
+	
 	dlb::Renderable light_source;
-	glm::vec3 light_source_position{ 0.0f, 5.0f, -10.0f };
+	glm::vec3 light_source_position{ 0.0f, 10.0f, 0.0f };
 	glm::vec3 light_specular{ 1.0f };
 	glm::vec3 light_diffuse{ 0.5f };
 	glm::vec3 light_ambient{ 0.2f };
@@ -286,9 +297,10 @@ int main() {
 		[] {
 			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(vertices[0]), NULL);
 			glEnableVertexAttribArray(0);
-			//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(vertices[0]), (void*)(3 * sizeof(float)));
-			//glEnableVertexAttribArray(1);
+			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(vertices[0]), (void*)(6 * sizeof(float)));
+			glEnableVertexAttribArray(1);
 		});
+	light_source.setTextures(&light_source_texture);
 
 	dlb::Renderable cube;
 	cube.setShaderProgram(&block_shaders);
@@ -299,7 +311,7 @@ int main() {
 			glEnableVertexAttribArray(0);
 			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(vertices[0]), (void*)(3 * sizeof(float)));
 			glEnableVertexAttribArray(1);
-			glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(vertices[0]), (void*)(6 * sizeof(float)));
+			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(vertices[0]), (void*)(6 * sizeof(float)));
 			glEnableVertexAttribArray(2);
 		});
 	cube.setMaterial(materials[0]);
@@ -313,6 +325,27 @@ int main() {
 	float shininess = 16.0f;
 
 	glm::vec3 bg_color{ 0.0f };
+
+	float light_point_constant = 1.0f;
+	float light_point_linear = 0.7f;
+	float light_point_quad = 1.8f;
+
+#pragma region Light Bulbs
+	std::vector<glm::vec3> light_bulbs_positions {
+		glm::vec3(0.7f,  0.2f,  2.0f),
+		glm::vec3(2.3f, -3.3f, -4.0f),
+		glm::vec3(-4.0f,  2.0f, -12.0f),
+		glm::vec3(0.0f,  0.0f, -3.0f)
+	};
+
+	glm::vec3 light_bulbs_colors[] = {
+	glm::vec3(1.0f, 0.6f, 0.0f),
+	glm::vec3(1.0f, 0.0f, 0.0f),
+	glm::vec3(1.0f, 1.0, 0.0),
+	glm::vec3(0.2f, 0.2f, 1.0f)
+	};
+#pragma endregion
+
 #pragma endregion
 
 	while (!glfwWindowShouldClose(window)) {
@@ -341,10 +374,14 @@ int main() {
 
 		ImGui::ColorEdit3("Bg Color", glm::value_ptr(bg_color)); // Adjust light source color
 
-		ImGui::Text("Light Configuration");
+		ImGui::Text("Light Point Configuration");
 		ImGui::ColorEdit3("Ambient", glm::value_ptr(light_ambient)); // Adjust light source color
 		ImGui::ColorEdit3("Diffuse", glm::value_ptr(light_diffuse)); // Adjust light source color
 		ImGui::ColorEdit3("Specular", glm::value_ptr(light_specular)); // Adjust light source color
+
+		ImGui::SliderFloat("Constant", &light_point_constant, -5.0f, 5.0f);
+		ImGui::SliderFloat("Linear", &light_point_linear, -2.0f, 2.0f);
+		ImGui::SliderFloat("Quad", &light_point_quad, -1.0f, 2.0f);
 
 		ImGui::Text("Light Source Configuration");
 		ImGui::SliderFloat("X Position", &light_source_position.x, -20.0f, 20.0f);
@@ -354,15 +391,61 @@ int main() {
 		ImGui::End();
 #pragma endregion
 
+		/*
 		light_source.render(
-			[&](const dlb::ShaderProgram* sp, dlb::Texture2DGroup* _) {
+			[&](const dlb::ShaderProgram* sp, dlb::Texture2DGroup* texs) {
 				sp->use();
+				texs->use();
 
-				light_source_position.x = cos(glfwGetTime()) * 20.0F;
-				light_source_position.z = sin(glfwGetTime()) * 20.0F;
+				//light_source_position.x = cos(glfwGetTime()) * 20.0F;
+				//light_source_position.z = sin(glfwGetTime()) * 20.0F;
 
 				sp->setUniform("u_light_color", glm::vec3(1.0f));
 				const glm::mat4 model = glm::scale(glm::translate(glm::mat4(1.0F), light_source_position), glm::vec3(0.1f));
+				const glm::mat4 view = context.getCamera().getView();
+
+				sp->setUniform("u_model", model);
+				sp->setUniform("u_view", view);
+				sp->setUniform("u_projection", projection);
+			});
+		*/
+
+		const glm::vec3 light_point_position = glm::vec3(6.0f, 5.0f, -5.0f);
+
+		for (int i = 0; i < light_bulbs_positions.size(); i++) {
+			// render a light point
+			light_source.render(
+				[&](const dlb::ShaderProgram* sp, dlb::Texture2DGroup* texs) {
+					sp->use();
+					texs->use();
+
+					//light_source_position.x = cos(glfwGetTime()) * 20.0F;
+					//light_source_position.z = sin(glfwGetTime()) * 20.0F;
+
+					sp->setUniform("u_light_color", glm::vec3(1.0f));
+					const glm::mat4 model = glm::scale(
+						glm::translate(glm::mat4(1.0F), light_bulbs_positions[i]),
+						glm::vec3(0.1f));
+					const glm::mat4 view = context.getCamera().getView();
+
+					sp->setUniform("u_model", model);
+					sp->setUniform("u_view", view);
+					sp->setUniform("u_projection", projection);
+				});
+		}
+		// render a light point
+		light_source.render(
+			[&](const dlb::ShaderProgram* sp, dlb::Texture2DGroup* texs) {
+				sp->use();
+				texs->use();
+
+				//light_source_position.x = cos(glfwGetTime()) * 20.0F;
+				//light_source_position.z = sin(glfwGetTime()) * 20.0F;
+
+				sp->setUniform("u_light_color", glm::vec3(1.0f));
+				const glm::mat4 model = glm::scale(
+						glm::translate(glm::mat4(1.0F), light_point_position),
+						glm::vec3(0.1f));
 				const glm::mat4 view = context.getCamera().getView();
 
 				sp->setUniform("u_model", model);
@@ -373,30 +456,64 @@ int main() {
 		for (int i = 0; i < positions.size(); i++) {
 			cube.render(
 				[&](const dlb::ShaderProgram* sp, dlb::Texture2DGroup* texs) {
-
-					const float angle = 20.0f * i;
-					const glm::mat4 model = glm::rotate(
-						glm::translate(glm::mat4(1.0F), positions[i]),
-						glm::radians(angle),
-						glm::vec3(1.0f, 0.3f, 0.5f));
+					const glm::mat4 model = glm::translate(glm::mat4(1.0F), positions[i]);
 					const glm::mat4 view = context.getCamera().getView();
 
-					texs->use();
 					sp->use();
+					texs->use();
+
+					sp->setUniform("u_light.direction", glm::vec3(-0.2f, -1.0f, -0.3f));
+					sp->setUniform("u_light.ambient", glm::vec3(0.3f, 0.24f, 0.14f));
+					sp->setUniform("u_light.diffuse", glm::vec3(0.7f, 0.42f, 0.26f));
+					sp->setUniform("u_light.specular", glm::vec3(0.5f, 0.5f, 0.5f));
+
+					sp->setUniform("u_light_points[0].position", light_bulbs_positions[0]);
+					sp->setUniform("u_light_points[0].ambient", light_bulbs_colors[0]);
+					sp->setUniform("u_light_points[0].diffuse", light_bulbs_colors[0] * 0.1F);
+					sp->setUniform("u_light_points[0].specular", light_bulbs_colors[0]);
+					sp->setUniform("u_light_points[0].constant", 1.0f);
+					sp->setUniform("u_light_points[0].linear", 0.09f);
+					sp->setUniform("u_light_points[0].quadratic", 0.032f);
+					// point light 2
+					sp->setUniform("u_light_points[1].position", light_bulbs_positions[1]);
+					sp->setUniform("u_light_points[1].ambient", light_bulbs_colors[1]);
+					sp->setUniform("u_light_points[1].diffuse", light_bulbs_colors[1] * 0.1F);
+					sp->setUniform("u_light_points[1].specular", light_bulbs_colors[1]);
+					sp->setUniform("u_light_points[1].constant", 1.0f);
+					sp->setUniform("u_light_points[1].linear", 0.09f);
+					sp->setUniform("u_light_points[1].quadratic", 0.032f);
+					// point light 3
+					sp->setUniform("u_light_points[2].position", light_bulbs_positions[2]);
+					sp->setUniform("u_light_points[2].ambient", light_bulbs_colors[2]);
+					sp->setUniform("u_light_points[2].diffuse", light_bulbs_colors[2] * 0.1F);
+					sp->setUniform("u_light_points[2].specular", light_bulbs_colors[2]);
+					sp->setUniform("u_light_points[2].constant", 1.0f);
+					sp->setUniform("u_light_points[2].linear", 0.09f);
+					sp->setUniform("u_light_points[2].quadratic", 0.032f);
+					// point light 4
+					sp->setUniform("u_light_points[3].position", light_bulbs_positions[3]);
+					sp->setUniform("u_light_points[3].ambient", light_bulbs_colors[3]);
+					sp->setUniform("u_light_points[3].diffuse", light_bulbs_colors[3] * 0.1F);
+					sp->setUniform("u_light_points[3].specular", light_bulbs_colors[3]);
+					sp->setUniform("u_light_points[3].constant", 1.0f);
+					sp->setUniform("u_light_points[3].linear", 0.09f);
+					sp->setUniform("u_light_points[3].quadratic", 0.032f);
 
 					sp->setUniform("u_material.diffuse", 0);
 					sp->setUniform("u_material.specular", 1);
-					sp->setUniform("u_material.emission", 2);
+					//sp->setUniform("u_material.emission", 2);
 					sp->setUniform("u_material.shininess", shininess);
-					sp->setUniform("u_material.specular", glm::vec3(0.5f));
 
+					sp->setUniform("u_light.direction", -light_source_position);
 					sp->setUniform("u_light.ambient", light_ambient);
 					sp->setUniform("u_light.diffuse", light_diffuse);
 					sp->setUniform("u_light.specular", light_specular);
-					sp->setUniform("u_light.position", light_source_position);
+
+					sp->setUniform("u_spotlight.position", context.getCamera().getPosition());
+					sp->setUniform("u_spotlight.direction", context.getCamera().getDirection());
+					sp->setUniform("u_spotlight.cutoff", glm::cos(glm::radians(12.5f)));
 
 					sp->setUniform("u_eye_position", context.getCamera().getPosition());
-					sp->setUniform("u_time", (float)glfwGetTime());
 
 					sp->setUniform("u_model", model);
 					sp->setUniform("u_view", view);

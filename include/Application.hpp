@@ -1,10 +1,21 @@
 #pragma once
 
 #include <string>
+#include <format>
+#include <iostream>
 
+#include "Texture.hpp"
 #include "Camera.hpp"
 
 namespace dlb {
+
+	struct GlobalLight {
+		glm::vec3 ambient;
+		glm::vec3 diffuse;
+		glm::vec3 specular;
+		glm::vec3 direction;
+	};
+
 	class ApplicationSingleton {
 
 	private:
@@ -21,6 +32,15 @@ namespace dlb {
 			last_frame = 0.0f;
 
 			wireframe_mode = false;
+
+			global_light = {
+				.ambient = glm::vec3(0.3f, 0.24f, 0.14f),
+				.diffuse = glm::vec3(0.7f, 0.42f, 0.26f),
+				.specular = glm::vec3(0.5f, 0.5f, 0.5f),
+				.direction = glm::vec3(-0.2f, -1.0f, -0.3f),
+			};
+
+			texture_pool = &dlb::Texture2DPool::getInstance();
 		}
 
 	public:
@@ -31,6 +51,10 @@ namespace dlb {
 
 		inline const glm::vec2& getWindowDims() const {
 			return window_dims;
+		}
+
+		inline Texture2DPool* getTexture2DPool() {
+			return texture_pool;
 		}
 
 		inline const std::string& getWindowTitle() const {
@@ -81,6 +105,14 @@ namespace dlb {
 			return frames;
 		}
 
+		const auto& getGlobalLight() const {
+			return global_light;
+		}
+
+		void error(const std::string& error_msg, const char* filename = "NOFILE", const char* function = "NOFUNC") const {
+			std::cerr << std::format("[ERROR]: {}:{} {}\n", filename, function, error_msg);
+		}
+
 		void updateTime();
 
 	private:
@@ -96,6 +128,10 @@ namespace dlb {
 
 		bool wireframe_mode;
 
+		GlobalLight global_light;
+
 		int frames = 0;
+
+		dlb::Texture2DPool* texture_pool;
 	};
 }

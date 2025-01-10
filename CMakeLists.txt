@@ -20,6 +20,7 @@ add_subdirectory(thirdparty/stb_image)			#loading immaged
 #add_subdirectory(thirdparty/enet-1.3.17)		#networking
 #add_subdirectory(thirdparty/raudio)				#audio
 add_subdirectory(thirdparty/imgui-docking)		#ui
+add_subdirectory(thirdparty/assimp)
 #----------V-----------------------V------------#my libraries												
 #add_subdirectory(thirdparty/safeSave)			#saving data, designed for gamedev. It also makes backups so the player won't loose saves.
 #add_subdirectory(thirdparty/profilerLib)		#profiling, just a simpe library for measuring elapsed time
@@ -39,13 +40,13 @@ target_compile_definitions("${CMAKE_PROJECT_NAME}" PUBLIC RESOURCES_PATH="${CMAK
 #target_compile_definitions("${CMAKE_PROJECT_NAME}" PUBLIC RESOURCES_PATH="./resources/") # Uncomment this line to setup the ASSETS_PATH macro to the final assets directory when you share the game
 #add_definitions(-DRESOURCES_PATH="${CMAKE_CURRENT_SOURCE_DIR}/resources/")
 
-target_sources("${CMAKE_PROJECT_NAME}" PRIVATE ${MY_SOURCES})
+target_sources("${CMAKE_PROJECT_NAME}" PRIVATE ${MY_SOURCES} "src/Scene/Mesh.cpp" "src/MeshMain.cpp")
 
 if(MSVC) # If using the VS compiler...
 
 	target_compile_definitions("${CMAKE_PROJECT_NAME}" PUBLIC _CRT_SECURE_NO_WARNINGS)
 
-	set_target_properties("${CMAKE_PROJECT_NAME}" PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
+	#set_target_properties("${CMAKE_PROJECT_NAME}" PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
 	
 	set_property(TARGET "${CMAKE_PROJECT_NAME}" PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreadedDebug<$<CONFIG:Debug>:Debug>")
 	set_property(TARGET "${CMAKE_PROJECT_NAME}" PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Release>:Release>")
@@ -64,5 +65,6 @@ target_link_libraries("${CMAKE_PROJECT_NAME}" PRIVATE glm glfw
 	glad
 	imgui
 	stb_image
+	assimp
 )
 

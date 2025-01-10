@@ -33,6 +33,7 @@ namespace dlb {
 			}
 
 			glGenTextures(1, (GLuint*)&texs[i].id);
+			texs[i].type = textures[i].type;
 
 			context.getTexture2DPool()->insert(textures[i].path, texs[i]);
 

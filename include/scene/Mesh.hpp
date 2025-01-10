@@ -35,7 +35,7 @@ namespace scene {
 			defaultSetup();
 		}
 
-		Mesh(Mesh&& x)
+		Mesh(Mesh&& x) noexcept
 			:vertices_(std::move(x.vertices_)),
 			indices_(std::move(x.indices_)),
 			textures_(std::move(x.textures_)) {
@@ -56,7 +56,7 @@ namespace scene {
 		}
 
 		void defaultSetup();
-
+		
 		void draw(const dlb::ShaderProgram& sp);
 
 	private:

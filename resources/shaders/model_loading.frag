@@ -13,6 +13,6 @@ struct Material {
 uniform Material u_material;
 
 void main() {
-	//FragColor = texture(u_material.texture_diffuse0, tex_coord);
-	FragColor = vec4(normal, 1.0f);
+	FragColor = texture(u_material.texture_diffuse0, tex_coord);
+	//FragColor = vec4(normal, 1.0f);
 }

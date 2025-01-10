@@ -94,6 +94,11 @@ namespace scene {
 		}
 
 		auto model = glm::mat4(1.0f);
+		/*
+		model = glm::scale(model, glm::vec3(0.25f));
+		model = glm::translate(model, glm::vec3(0.0f, 0.0f, 5.0f));
+		model = glm::rotate(model, glm::radians(-90.0F), glm::vec3(1.0f, 0.0f, .0f));
+		*/
 		model = glm::translate(model, glm::vec3(0.0f));
 		glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)context.getWindowDims().x / (float)context.getWindowDims().y, 0.1f, 100.0f);
 

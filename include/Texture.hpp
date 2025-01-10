@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <unordered_map>
+#include <iostream>
 
 #include <glad/glad.h>
 
@@ -41,9 +42,13 @@ namespace dlb {
 		~Texture2DGroup() {
 			// drawback of having an array of texture2D instead of an array of ints
 			// maybe refactor this later so all textures can be deleted in one call.
+
 			/*
+
+			std::cout << "Deleting textures" << textures.size() << std::endl;
+
 			for (int i = 0; i < textures.size(); i++) {
-				glDeleteTextures(1, &textures[i].id);
+				glDeleteTextures(1, &textures[i].d);
 			}
 			*/
 		}

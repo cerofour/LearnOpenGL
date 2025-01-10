@@ -192,6 +192,8 @@ int main() {
 
 	auto& context = dlb::ApplicationSingleton::getInstance();
 
+	stbi_set_flip_vertically_on_load(true);
+
 	glViewport(0, 0, context.getWindowDims().x, context.getWindowDims().y);
 	glEnable(GL_DEPTH_TEST);
 
@@ -225,7 +227,8 @@ int main() {
 	glm::vec3 bg_color{ 0.0f };
 
 	scene::Model backpack{ "C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\models\\backpack\\backpack.obj" };
-	scene::Model merchi{ "C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\models\\merchi.obj" };
+	scene::Model skull{ "C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\models\\Skull\\skull.obj" };
+	//scene::Model gun{ "C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\models\\gun\\gun.obj" };
 #pragma endregion
 
 	while (!glfwWindowShouldClose(window)) {
@@ -261,7 +264,7 @@ int main() {
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 		backpack.draw(block_shaders);
-		merchi.draw(block_shaders);
+		//gun.draw(block_shaders);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

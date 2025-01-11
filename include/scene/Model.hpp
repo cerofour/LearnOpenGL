@@ -12,15 +12,16 @@
 namespace scene {
 	class Model {
 	public:
-		Model(const char* path) {
+		Model(const char* path, uint flags = ModelFlags::UseTextures) {
 			error = false;
+			flags_ = flags;
 			load_model(path);
 		}
 
 	public:
 		void draw(const dlb::ShaderProgram& sp) {
 			for (auto& mesh : meshes_) {
-				mesh.draw(sp);
+				mesh.draw(sp, flags_);
 			}
 		}
 
@@ -28,11 +29,14 @@ namespace scene {
 		void load_model(const char* path);
 		void process_node(aiNode* node, const aiScene* scene);
 		Mesh process_mesh(aiMesh* mesh, const aiScene* scene);
+		Material process_material(aiMaterial* material, const aiScene* scene);
 		void load_material_textures(dlb::Texture2DGroupBuilder& builder, aiMaterial* mat, aiTextureType type);
 
 	private:
 		std::vector<Mesh> meshes_;
 		std::string directory_;
 		bool error;
+		// by default all models should use textures instead of materials.
+		uint flags_;
 	};
 }

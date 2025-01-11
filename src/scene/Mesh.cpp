@@ -66,7 +66,7 @@ namespace scene {
 		sp.setUniform("u_eye_position", context.getCamera().getPosition());
 	}
 
-	void Mesh::draw(const dlb::ShaderProgram& sp) {
+	void Mesh::draw(const dlb::ShaderProgram& sp, uint flags) {
 		uint n_diffuse = 0;
 		uint n_specular = 0;
 
@@ -76,21 +76,27 @@ namespace scene {
 
 		sp.use();
 
-		glm::vec3 light_source_position{ -0.2f, -1.0f, -0.3f };
-		glm::vec3 light_specular{ 1.0f };
-		glm::vec3 light_diffuse{ 0.5f };
-		glm::vec3 light_ambient{ 0.2f };
+		if (flags & UseTextures) {
+			for (int i = 0; i < texs.size(); i++) {
+				glActiveTexture(GL_TEXTURE0 + i);
 
-		for (int i = 0; i < texs.size(); i++) {
-			glActiveTexture(GL_TEXTURE0 + i);
+				if (texs[i].type == dlb::Texture2DType::Diffuse)
+					sp.setUniform(std::format("u_material.texture_diffuse{}", n_diffuse++), i);
 
-			if (texs[i].type == dlb::Texture2DType::Diffuse)
-				sp.setUniform(std::format("u_material.texture_diffuse{}", n_diffuse++), i);
+				else if (texs[i].type == dlb::Texture2DType::Specular)
+					sp.setUniform(std::format("u_material.texture_specular{}", n_specular++), i);
 
-			else if (texs[i].type == dlb::Texture2DType::Specular)
-				sp.setUniform(std::format("u_material.texture_specular{}", n_specular++), i);
+				glBindTexture(GL_TEXTURE_2D, texs[i].id);
+			}
 
-			glBindTexture(GL_TEXTURE_2D, texs[i].id);
+			// TODO: FIX THIS
+			sp.setUniform("u_material.shininess", 64.0f);
+		}
+		else if (flags & UseMaterials) {
+			sp.setUniform("u_material.diffuse", material_.diffuse);
+			sp.setUniform("u_material.ambient", material_.ambient);
+			sp.setUniform("u_material.specular", material_.specular);
+			sp.setUniform("u_material.shininess", material_.shininess);
 		}
 
 		auto model = glm::mat4(1.0f);
@@ -106,9 +112,7 @@ namespace scene {
 		sp.setUniform("u_view", context.getCamera().getView());
 		sp.setUniform("u_projection", projection);
 
-		//sp.setUniform("u_material.shininess", 64);
-
-		//setLightingUniforms(sp);
+		setLightingUniforms(sp);
 
 		glBindVertexArray(VAO);
 
@@ -118,7 +122,6 @@ namespace scene {
 			context.error(std::format("Error rendering mesh, glGetError returned {}.", error), __FILE__, __FUNCTION__);
 		}
 
-		//glDrawArrays(GL_TRIANGLES, 0, 36);
 		glDrawElements(GL_TRIANGLES, indices_.size(), GL_UNSIGNED_INT, 0);
 
 		error = glGetError();

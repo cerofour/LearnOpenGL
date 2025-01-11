@@ -172,6 +172,41 @@ void APIENTRY glDebugOutput(GLenum source,
 	std::cout << std::endl;
 }
 
+void ImGuiPanelRendering() {
+
+	auto& context = dlb::ApplicationSingleton::getInstance();
+
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplGlfw_NewFrame();
+	ImGui::NewFrame();
+	ImGui::SetNextWindowPos(ImVec2(0, 0));
+	ImGui::SetNextWindowSize(ImVec2(300, 0));
+	ImGui::Begin("Scene Information");
+
+	ImGui::Text(std::format("FPS: {}/{}",
+		context.getFrames(), 1000.0f / (float)context.getFrames()).c_str());
+
+	ImGui::ColorEdit3("Bg Color", glm::value_ptr(context.getBgColor())); // Adjust light source color
+
+	ImGui::Text(std::format("X: {} Y: {} Z: {}",
+		context.getCamera().getPosition().x, context.getCamera().getPosition().y, context.getCamera().getPosition().z).c_str());
+
+	ImGui::Text(std::format("Looking at X: {} Y: {} Z: {}",
+		context.getCamera().getDirection().x, context.getCamera().getDirection().y, context.getCamera().getDirection().z).c_str());
+
+	ImGui::InputFloat("Camera Speed", &context.getCamera().getCameraSpeedRef());
+
+	ImGui::Text("Global Light");
+	ImGui::InputFloat3("Light Direction", glm::value_ptr(context.getGlobalLight().direction), "%.2f");
+	ImGui::ColorEdit3("Ambient", glm::value_ptr(context.getGlobalLight().ambient));
+	ImGui::ColorEdit3("Diffuse", glm::value_ptr(context.getGlobalLight().diffuse));
+	ImGui::ColorEdit3("Specular", glm::value_ptr(context.getGlobalLight().specular));
+
+	ImGui::End();
+
+
+}
+
 int main() {
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -189,6 +224,16 @@ int main() {
 		std::cout << "Failed to initialize GLAD" << std::endl;
 		return -1;
 	}
+	
+	/*
+	int flags; glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
+	if (flags & GL_CONTEXT_FLAG_DEBUG_BIT) {
+		glEnable(GL_DEBUG_OUTPUT);
+		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+		glDebugMessageCallback(glDebugOutput, nullptr);
+		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+	}
+	*/
 
 	auto& context = dlb::ApplicationSingleton::getInstance();
 
@@ -215,56 +260,41 @@ int main() {
 #pragma endregion
 
 #pragma region Shader programs
-	dlb::ShaderProgramBuilder spb{};
-	spb
-		.vertexShader("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\shaders\\model_loading.vert")
-		.fragmentShader("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\shaders\\model_loading.frag");
+	const auto textured_models_shader = dlb::ShaderProgramBuilder{}
+		.vertexShader("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\shaders\\ModelWithTextures.vert")
+		.fragmentShader("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\shaders\\ModelWithTextures.frag")
+		.build();
 
-	const auto block_shaders = spb.build();
+	const auto material_models_shader = dlb::ShaderProgramBuilder{}
+		.vertexShader("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\shaders\\ModelWithMaterials.vert")
+		.fragmentShader("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\shaders\\ModelWithMaterials.frag")
+		.build();
 #pragma endregion
 
 #pragma region Scene Configuration
-	glm::vec3 bg_color{ 0.0f };
-
-	scene::Model backpack{ "C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\models\\backpack\\backpack.obj" };
-	scene::Model skull{ "C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\models\\Skull\\skull.obj" };
+	//scene::Model backpack{ "C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\models\\backpack\\backpack.obj" };
+	scene::Model tree{ "C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\models\\low_poly_tree\\Lowpoly_tree_sample.obj", scene::ModelFlags::UseMaterials };
+	//scene::Model spaceship{ "C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\models\\spaceship\\spaceship.obj"};
+	//scene::Model skull{ "C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\models\\Skull\\skull.obj" };
 	//scene::Model gun{ "C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\models\\gun\\gun.obj" };
 #pragma endregion
 
 	while (!glfwWindowShouldClose(window)) {
 		proccessInput(window);
 		context.updateTime();
-
+		const auto& bg_color = context.getBgColor();
 		glClearColor(bg_color.r, bg_color.g, bg_color.b, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-#pragma region ImGui Panel
-		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
-		ImGui::NewFrame();
-		ImGui::SetNextWindowPos(ImVec2(0, 0));
-		ImGui::SetNextWindowSize(ImVec2(300, 500));
-		ImGui::Begin("Scene Configuration");
-
-		ImGui::Text(std::format("FPS: {}/{}",
-			context.getFrames(), 1000.0f / (float)context.getFrames()).c_str());
-
-		ImGui::Text(std::format("X: {} Y: {} Z: {}",
-			context.getCamera().getPosition().x, context.getCamera().getPosition().y, context.getCamera().getPosition().z).c_str());
-
-		ImGui::Text(std::format("Looking at X: {} Y: {} Z: {}",
-			context.getCamera().getDirection().x, context.getCamera().getDirection().y, context.getCamera().getDirection().z).c_str());
-
-		ImGui::ColorEdit3("Bg Color", glm::value_ptr(bg_color)); // Adjust light source color
-		ImGui::End();
-#pragma endregion
-
-		// Render ImGui
+#pragma region ImGui Rendering
+		ImGuiPanelRendering();
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+#pragma endregion
 
-		backpack.draw(block_shaders);
-		//gun.draw(block_shaders);
+		//backpack.draw(textured_models_shader);
+		tree.draw(material_models_shader);
+		//spaceship.draw(textured_models_shader);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

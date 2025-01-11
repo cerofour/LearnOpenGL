@@ -20,11 +20,12 @@ namespace dlb {
 
 	private:
 		ApplicationSingleton()
-			:camera{glm::vec3(0.0f, 0.0f, -5.0f)}
+			:camera{glm::vec3(0.0f, 0.0f, -5.0f)},
+			bg_color{ 0.0f, 0.0f, 0.0f }
 		{
 			window_dims.x = 800;
 			window_dims.y = 600;
-
+			
 			last_cursor_pos = { window_dims.x / 2.0f, window_dims.y / 2.0f };
 
 			window_title = "Learn OpenGL";
@@ -105,8 +106,12 @@ namespace dlb {
 			return frames;
 		}
 
-		const auto& getGlobalLight() const {
+		auto& getGlobalLight() {
 			return global_light;
+		}
+
+		auto& getBgColor() {
+			return bg_color;
 		}
 
 		void error(const std::string& error_msg, const char* filename = "NOFILE", const char* function = "NOFUNC") const {
@@ -116,8 +121,10 @@ namespace dlb {
 		void updateTime();
 
 	private:
+
 		glm::vec2 window_dims;
 		glm::vec2 last_cursor_pos;
+		glm::vec3 bg_color;
 		std::string window_title;
 
 		double delta_time;

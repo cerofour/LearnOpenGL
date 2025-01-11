@@ -11,6 +11,16 @@
 
 namespace scene {
 
+	enum ModelFlags {
+		UseMaterials = 1 << 0,
+		UseTextures = 1 << 2,
+	};
+
+	struct Material {
+		glm::vec3 ambient, diffuse, specular;
+		float shininess;
+	};
+
 	struct Vertex {
 
 		static_assert(std::is_pod<glm::vec3>::value, "Vec3 type must be POD.");
@@ -24,10 +34,11 @@ namespace scene {
 
 	class Mesh {
 	public:
-		Mesh(std::vector<Vertex>&& vertex, std::vector<uint>&& indices, dlb::Texture2DGroup&& texs)
-		:vertices_(std::move(vertex)),
-		indices_(std::move(indices)),
-		textures_(std::move(texs))
+		Mesh(std::vector<Vertex>&& vertex, std::vector<uint>&& indices, dlb::Texture2DGroup&& texs, Material mat = {})
+			:vertices_(std::move(vertex)),
+			indices_(std::move(indices)),
+			textures_(std::move(texs)),
+			material_(mat)
 		{
 			VAO = 0;
 			VBO = 0;
@@ -44,6 +55,8 @@ namespace scene {
 			VBO = x.VBO;
 			EBO = x.EBO;
 
+			material_ = x.material_;
+
 			x.VAO = 0;
 			x.VBO = 0;
 			x.EBO = 0;
@@ -57,12 +70,13 @@ namespace scene {
 
 		void defaultSetup();
 		
-		void draw(const dlb::ShaderProgram& sp);
+		void draw(const dlb::ShaderProgram& sp, uint flags);
 
 	private:
 		std::vector<Vertex> vertices_;
 		std::vector<uint> indices_;
 		dlb::Texture2DGroup textures_;
+		Material material_;
 
 		uint VAO, VBO, EBO;
 	};

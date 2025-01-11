@@ -25,9 +25,13 @@ namespace dlb {
 
 		void updateDirection(const glm::vec2& offsets);
 
+		float& getCameraSpeedRef() {
+			return camera_speed;
+		}
+
 	private:
-		void updateView();
 		float getCameraSpeed();
+		void updateView();
 
 	private:
 		glm::vec3 position,

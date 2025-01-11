@@ -45,12 +45,15 @@ namespace scene {
 			vert.normal.y = mesh->mNormals[i].y;
 			vert.normal.z = mesh->mNormals[i].z;
 
-			if (mesh->mTextureCoords[0]) {
-				vert.tex_coords.x = mesh->mTextureCoords[0][i].x;
-				vert.tex_coords.y = mesh->mTextureCoords[0][i].y;
-			}
-			else {
-				vert.tex_coords = { 0.0f, 0.0f };
+
+			if (flags_ & ModelFlags::UseTextures) {
+				if (mesh->mTextureCoords[0]) {
+					vert.tex_coords.x = mesh->mTextureCoords[0][i].x;
+					vert.tex_coords.y = mesh->mTextureCoords[0][i].y;
+				}
+				else {
+					vert.tex_coords = { 0.0f, 0.0f };
+				}
 			}
 
 			vertices.push_back(vert);
@@ -64,13 +67,43 @@ namespace scene {
 
 		dlb::Texture2DGroupBuilder tex_group_builder{};
 
+		Material mat{};
+
 		if (mesh->mMaterialIndex >= 0) {
 			aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
-			load_material_textures(tex_group_builder, material, aiTextureType_DIFFUSE);
-			load_material_textures(tex_group_builder, material, aiTextureType_SPECULAR);
+
+			if (flags_ & UseMaterials)
+				mat = process_material(material, scene);
+
+			else if (flags_ & UseTextures) {
+				load_material_textures(tex_group_builder, material, aiTextureType_DIFFUSE);
+				load_material_textures(tex_group_builder, material, aiTextureType_SPECULAR);
+			}
 		}
 
-		return Mesh(std::move(vertices), std::move(indices), tex_group_builder.build());
+		return Mesh(std::move(vertices), std::move(indices), tex_group_builder.build(), mat);
+	}
+
+	Material Model::process_material(aiMaterial* material, const aiScene* scene) {
+		Material mat{};
+
+		aiColor3D color{ 0.0f };
+
+		material->Get(AI_MATKEY_COLOR_DIFFUSE, color);
+		mat.diffuse = { color.r, color.g, color.b };
+		
+		material->Get(AI_MATKEY_COLOR_AMBIENT, color);
+		mat.ambient = { color.r, color.g, color.b };
+
+		material->Get(AI_MATKEY_COLOR_SPECULAR, color);
+		mat.specular = { color.r, color.g, color.b };
+
+		float shininess{ 0.0f };
+
+		material->Get(AI_MATKEY_SHININESS, shininess);
+		mat.shininess = shininess;
+
+		return mat;
 	}
 
 	void Model::load_material_textures(dlb::Texture2DGroupBuilder& builder, aiMaterial* material, aiTextureType type) {

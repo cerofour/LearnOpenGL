@@ -2,8 +2,30 @@
 #include <format>
 
 #include "scene/Model.hpp"
+#include "Application.hpp"
 
 namespace scene {
+	void Model::draw(const dlb::ShaderProgram& sp, const glm::mat4& transformation, const glm::vec3& bb_color = {0.0f, 0.0f, 0.0f}) {
+		const auto& context = dlb::ApplicationSingleton::getInstance();
+
+		for (auto& mesh : meshes_) {
+			mesh.draw(sp, transformation, flags_);
+		}
+
+		if ((flags_ & DrawAABB))
+			aabb_mesh_.draw(context.getShader(context.getAABBShader()), transformation, bb_color);
+	}
+
+	bool Model::AABBTest(Model& other, const glm::vec3& this_position, const glm::vec3& other_position) {
+		glm::mat4 this_transform = glm::translate(glm::mat4(1.0f), this_position);
+		glm::mat4 other_transform = glm::translate(glm::mat4(1.0f), other_position);
+
+		AABB thisAABB = aabb_.translate(this_transform);
+		AABB otherAABB = other.aabb_.translate(other_transform);
+
+		return thisAABB.test(otherAABB);
+	}
+
 	void Model::load_model(const char* path) {
 		Assimp::Importer importer;
 		const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
@@ -18,6 +40,11 @@ namespace scene {
 
 		directory_ = p.substr(0, p.find_last_of('\\') + 1);
 		process_node(scene->mRootNode, scene);
+
+		createAABB();
+
+		if (flags_ & DrawAABB)
+			createAABBMesh();
 	}
 
 	void Model::process_node(aiNode* node, const aiScene* scene) { 
@@ -114,5 +141,68 @@ namespace scene {
 				.path(std::format("{}{}", directory_, path.C_Str()))
 				.type((type == aiTextureType_DIFFUSE) ? dlb::Texture2DType::Diffuse : dlb::Texture2DType::Specular);
 		}
+	}
+
+	void Model::createAABB() {
+		glm::vec3 min{ std::numeric_limits<float>::infinity() };
+		glm::vec3 max{ -std::numeric_limits<float>::infinity()};
+
+		for (int i = 0; i < meshes_.size(); i++) {
+			auto current_min = meshes_[i].getMinCoords();
+			auto current_max = meshes_[i].getMaxCoords();
+
+			if (min.x > current_min.x)
+				min.x = current_min.x;
+
+			if (min.y > current_min.y)
+				min.y = current_min.y;
+
+			if (min.z > current_min.z)
+				min.z = current_min.z;
+
+			if (max.x < current_max.x)
+				max.x = current_max.x;
+
+			if (max.y < current_max.y)
+				max.y = current_max.y;
+
+			if (max.z < current_max.z)
+				max.z = current_max.z;
+		}
+
+		aabb_.min = min;
+		aabb_.max = max;
+	}
+	void Model::createAABBMesh() {
+		auto& m = aabb_.max;
+		auto& i = aabb_.min;
+
+		std::vector<BasicVertex> verts = {
+			{glm::vec3(m.x, m.y, m.z)}, // m
+			{glm::vec3(i.x, i.y, i.z)}, // i
+			{glm::vec3(m.x, i.y, m.z)}, // a
+			{glm::vec3(i.x, i.y, m.z)}, // b
+			{glm::vec3(i.x, m.y, m.z)}, // c
+			{glm::vec3(i.x, m.y, i.z)}, // d
+			{glm::vec3(m.x, m.y, i.z)}, // e
+			{glm::vec3(m.x, i.y, i.z)}, // f
+		};
+
+		std::vector<uint> indices = {
+			0,2,3, //m a b
+			0,4,3, //m c b
+			0,2,7, 
+			0,6,7,
+			0,4,5,
+			0,5,6,
+			1,3,4,
+			1,4,5,
+			1,7,6,
+			1,6,5,
+			1,3,2,
+			1,7,2,
+		};
+
+		aabb_mesh_.feed(std::move(verts), std::move(indices));
 	}
 }

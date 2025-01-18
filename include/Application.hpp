@@ -6,6 +6,10 @@
 
 #include "Texture.hpp"
 #include "Camera.hpp"
+#include "ShaderProgram.hpp"
+#include "scene/Model.hpp"
+
+struct GLFWwindow;
 
 namespace dlb {
 
@@ -23,12 +27,16 @@ namespace dlb {
 			:camera{glm::vec3(0.0f, 0.0f, -5.0f)},
 			bg_color{ 0.0f, 0.0f, 0.0f }
 		{
-			window_dims.x = 800;
-			window_dims.y = 600;
+			window_title = "physics engine";
+			window_dims.x = 1000;
+			window_dims.y = 700;
+
+			init();
+
+			pause_ecs_ = false;
 			
 			last_cursor_pos = { window_dims.x / 2.0f, window_dims.y / 2.0f };
 
-			window_title = "Learn OpenGL";
 			delta_time = 0.0f;
 			last_frame = 0.0f;
 
@@ -42,7 +50,17 @@ namespace dlb {
 			};
 
 			texture_pool = &dlb::Texture2DPool::getInstance();
+
+			// load Bounding box shader
+			aabb_shader_ = addShader(dlb::ShaderProgramBuilder{}
+				.vertexShader("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\shaders\\AABB.vert")
+				.fragmentShader("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\shaders\\AABB.frag"));
 		}
+	private:
+		void init();
+		//void mouse_callback(GLFWwindow* window, double xposIn, double yposIn);
+		//GLFWwindow* createWindow(int w, int h, const char* title);
+		//void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
 	public:
 		static ApplicationSingleton& getInstance() {
@@ -76,6 +94,10 @@ namespace dlb {
 
 		inline void setWindowDimsH(float value) {
 			window_dims.y = value;
+		}
+
+		inline bool& getPauseEcs() {
+			return pause_ecs_;
 		}
 
 		inline dlb::Camera& getCamera() {
@@ -118,10 +140,39 @@ namespace dlb {
 			std::cerr << std::format("[ERROR]: {}:{} {}\n", filename, function, error_msg);
 		}
 
+		uint addModel(const char* path, uint flags) {
+			models_.push_back({ path, flags });
+			return models_.size() - 1;
+		}
+
+		uint addShader(dlb::ShaderProgramBuilder& builder) {
+			shaders_.push_back(builder.build());
+			return shaders_.size() - 1;
+		}
+
+		scene::Model& getModel(uint model_id) {
+			if (model_id >= models_.size())
+				abort();
+
+			return models_[model_id];
+		}
+
+		const dlb::ShaderProgram& getShader(uint id) const {
+			return shaders_[id];
+		}
+
+		uint getAABBShader() const {
+			return aabb_shader_;
+		}
+
 		void updateTime();
 
-	private:
+		GLFWwindow* getWindow() {
+			return window_;
+		}
 
+	private:
+		GLFWwindow* window_;
 		glm::vec2 window_dims;
 		glm::vec2 last_cursor_pos;
 		glm::vec3 bg_color;
@@ -134,11 +185,17 @@ namespace dlb {
 		dlb::Camera camera;
 
 		bool wireframe_mode;
+		bool pause_ecs_;
+		//bool init_;
 
 		GlobalLight global_light;
 
 		int frames = 0;
 
 		dlb::Texture2DPool* texture_pool;
+
+		std::vector<scene::Model> models_;
+		std::vector<dlb::ShaderProgram> shaders_;
+		uint aabb_shader_;
 	};
 }

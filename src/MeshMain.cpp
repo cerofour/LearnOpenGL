@@ -1,8 +1,8 @@
 #include <glad/glad.h>
-#include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <GLFW/glfw3.h>
 
 #include <imgui.h>
 #include "backends/imgui_impl_glfw.h"
@@ -24,80 +24,18 @@
 #include "Texture.hpp"
 #include "Types.hpp"
 #include "scene/Model.hpp"
+#include "ecs/ECS.hpp"
 
-std::vector<float> cube_vertices{
-#include "cube_vertices"
-};
 
-void failOnCondition(bool cond, const std::function<void()>& cleanup) {
-	if (cond) {
-		cleanup();
-		exit(-1);
-	}
-}
-
-GLFWwindow* createWindow() {
+void proccessInput() {
 
 	auto& context = dlb::ApplicationSingleton::getInstance();
-	auto& window_dims = context.getWindowDims();
+	auto window = context.getWindow();
 
-	GLFWwindow* window = glfwCreateWindow(
-		window_dims.x,
-		window_dims.y,
-		context.getWindowTitle().c_str(),
-		NULL,
-		NULL);
-
-	return window;
-}
-
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-{
-	// make sure the viewport matches the new window dimensions; note that width and 
-	// height will be significantly larger than specified on retina displays.
-	dlb::ApplicationSingleton::getInstance().setWindowDimsH(height);
-	dlb::ApplicationSingleton::getInstance().setWindowDimsW(width);
-	glViewport(0, 0, width, height);
-}
-
-void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
-{
-
-	auto& context = dlb::ApplicationSingleton::getInstance();
-
-	float xpos = static_cast<float>(xposIn);
-	float ypos = static_cast<float>(yposIn);
-
-	float xoffset = xpos - context.getLastCursor().x;
-	float yoffset = context.getLastCursor().y - ypos; // reversed since y-coordinates go from bottom to top
-	context.setLastCursorX(xpos);
-	context.setLastCursorY(ypos);
-
-	float sensitivity = 0.1f; // change this value to your liking
-	xoffset *= sensitivity;
-	yoffset *= sensitivity;
-
-	context.getCamera().updateDirection(glm::vec2(xoffset, yoffset));
-}
-
-void proccessInput(GLFWwindow* window) {
-
-	auto& context = dlb::ApplicationSingleton::getInstance();
-
-	auto& io = ImGui::GetIO();
-
-	if (io.WantCaptureMouse) {
-		// Enable the cursor when ImGui is capturing input
-		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-	}
-	else {
-		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
 			glfwSetWindowShouldClose(window, true);
 		}
 		else if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS) {
-
-			std::cout << "[WIREFRAME MODE: ]" << context.getWireframeMode() << std::endl;
 
 			context.getWireframeMode() ?
 				glPolygonMode(GL_FRONT_AND_BACK, GL_POLYGON) :
@@ -122,58 +60,9 @@ void proccessInput(GLFWwindow* window) {
 		} //else if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
 			//context.position.y -= 0.1f;
 		//}
-	}
 }
 
-void APIENTRY glDebugOutput(GLenum source,
-	GLenum type,
-	unsigned int id,
-	GLenum severity,
-	GLsizei length,
-	const char* message,
-	const void* userParam)
-{
-	// ignore non-significant error/warning codes
-	if (id == 131169 || id == 131185 || id == 131218 || id == 131204) return;
-
-	std::cout << "---------------" << std::endl;
-	std::cout << "Debug message (" << id << "): " << message << std::endl;
-
-	switch (source)
-	{
-	case GL_DEBUG_SOURCE_API:             std::cout << "Source: API"; break;
-	case GL_DEBUG_SOURCE_WINDOW_SYSTEM:   std::cout << "Source: Window System"; break;
-	case GL_DEBUG_SOURCE_SHADER_COMPILER: std::cout << "Source: Shader Compiler"; break;
-	case GL_DEBUG_SOURCE_THIRD_PARTY:     std::cout << "Source: Third Party"; break;
-	case GL_DEBUG_SOURCE_APPLICATION:     std::cout << "Source: Application"; break;
-	case GL_DEBUG_SOURCE_OTHER:           std::cout << "Source: Other"; break;
-	} std::cout << std::endl;
-
-	switch (type)
-	{
-	case GL_DEBUG_TYPE_ERROR:               std::cout << "Type: Error"; break;
-	case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: std::cout << "Type: Deprecated Behaviour"; break;
-	case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:  std::cout << "Type: Undefined Behaviour"; break;
-	case GL_DEBUG_TYPE_PORTABILITY:         std::cout << "Type: Portability"; break;
-	case GL_DEBUG_TYPE_PERFORMANCE:         std::cout << "Type: Performance"; break;
-	case GL_DEBUG_TYPE_MARKER:              std::cout << "Type: Marker"; break;
-	case GL_DEBUG_TYPE_PUSH_GROUP:          std::cout << "Type: Push Group"; break;
-	case GL_DEBUG_TYPE_POP_GROUP:           std::cout << "Type: Pop Group"; break;
-	case GL_DEBUG_TYPE_OTHER:               std::cout << "Type: Other"; break;
-	} std::cout << std::endl;
-
-	switch (severity)
-	{
-	case GL_DEBUG_SEVERITY_HIGH:         std::cout << "Severity: high"; break;
-	case GL_DEBUG_SEVERITY_MEDIUM:       std::cout << "Severity: medium"; break;
-	case GL_DEBUG_SEVERITY_LOW:          std::cout << "Severity: low"; break;
-	case GL_DEBUG_SEVERITY_NOTIFICATION: std::cout << "Severity: notification"; break;
-	} std::cout << std::endl;
-	std::cout << std::endl;
-}
-
-void ImGuiPanelRendering() {
-
+void ImGuiPanelRendering(ecs::EntityPool& ep) {
 	auto& context = dlb::ApplicationSingleton::getInstance();
 
 	ImGui_ImplOpenGL3_NewFrame();
@@ -196,51 +85,30 @@ void ImGuiPanelRendering() {
 
 	ImGui::InputFloat("Camera Speed", &context.getCamera().getCameraSpeedRef());
 
+	ImGui::Checkbox("Pause ECS", &context.getPauseEcs());
+
 	ImGui::Text("Global Light");
 	ImGui::InputFloat3("Light Direction", glm::value_ptr(context.getGlobalLight().direction), "%.2f");
 	ImGui::ColorEdit3("Ambient", glm::value_ptr(context.getGlobalLight().ambient));
 	ImGui::ColorEdit3("Diffuse", glm::value_ptr(context.getGlobalLight().diffuse));
 	ImGui::ColorEdit3("Specular", glm::value_ptr(context.getGlobalLight().specular));
 
+	for (const auto& entity : ep.getEntities()) {
+		auto& model = context.getModel(entity.model_id);
+		auto& aabb = model.getAABB();
+		ImGui::Text("Entity %d", entity.id);
+		ImGui::Text("MIN %.3f, %.3f %.3f", aabb.min.x, aabb.min.y, aabb.max.z);
+		ImGui::Text("MAX %.3f, %.3f %.3f", aabb.max.x, aabb.max.y, aabb.max.z);
+	}
+
 	ImGui::End();
-
-
 }
 
 int main() {
-	glfwInit();
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	//glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
-	//glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-
-	auto window = createWindow();
-	failOnCondition(window == NULL, [] {glfwTerminate(); });
-
-	glfwMakeContextCurrent(window);
-
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-		std::cout << "Failed to initialize GLAD" << std::endl;
-		return -1;
-	}
-	
-	/*
-	int flags; glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
-	if (flags & GL_CONTEXT_FLAG_DEBUG_BIT) {
-		glEnable(GL_DEBUG_OUTPUT);
-		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-		glDebugMessageCallback(glDebugOutput, nullptr);
-		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
-	}
-	*/
-
 	auto& context = dlb::ApplicationSingleton::getInstance();
+	auto window = context.getWindow();
 
 	stbi_set_flip_vertically_on_load(true);
-
-	glViewport(0, 0, context.getWindowDims().x, context.getWindowDims().y);
-	glEnable(GL_DEPTH_TEST);
 
 	// Initialize ImGui
 	IMGUI_CHECKVERSION();
@@ -250,51 +118,60 @@ int main() {
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init("#version 330");
 
-#pragma region Callbacks
-	/*
-	* Set the according viewport everytime the user resizes the window
-	*/
-	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-	glfwMaximizeWindow(window);
-	glfwSetCursorPosCallback(window, mouse_callback);
-#pragma endregion
-
 #pragma region Shader programs
-	const auto textured_models_shader = dlb::ShaderProgramBuilder{}
+	auto textured_model_shader = context.addShader(
+		dlb::ShaderProgramBuilder{}
 		.vertexShader("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\shaders\\ModelWithTextures.vert")
-		.fragmentShader("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\shaders\\ModelWithTextures.frag")
-		.build();
+		.fragmentShader("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\shaders\\ModelWithTextures.frag"));
 
-	const auto material_models_shader = dlb::ShaderProgramBuilder{}
+	auto material_model_shader = context.addShader(
+		dlb::ShaderProgramBuilder{}
 		.vertexShader("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\shaders\\ModelWithMaterials.vert")
-		.fragmentShader("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\shaders\\ModelWithMaterials.frag")
-		.build();
+		.fragmentShader("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\shaders\\ModelWithMaterials.frag"));
+
+	auto notextures_model_shader = context.addShader(
+		dlb::ShaderProgramBuilder{}
+			.vertexShader("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\shaders\\ModelWithMaterials.vert")
+			.fragmentShader("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\shaders\\ModelWithout.frag"));
 #pragma endregion
 
 #pragma region Scene Configuration
-	//scene::Model backpack{ "C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\models\\backpack\\backpack.obj" };
-	scene::Model tree{ "C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\models\\low_poly_tree\\Lowpoly_tree_sample.obj", scene::ModelFlags::UseMaterials };
-	//scene::Model spaceship{ "C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\models\\spaceship\\spaceship.obj"};
-	//scene::Model skull{ "C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\models\\Skull\\skull.obj" };
-	//scene::Model gun{ "C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\models\\gun\\gun.obj" };
+	auto tree_model = context.addModel("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\models\\low_poly_tree\\Lowpoly_tree_sample.obj", scene::ModelFlags::UseMaterials | scene::ModelFlags::DrawAABB);
+	auto wheel5 = context.addModel("C:\\Users\\Diego\\Documents\\Code\\LearnOpenGL\\resources\\models\\5wheel\\wheel5.obj", scene::ModelFlags::UseMaterials | scene::ModelFlags::DrawAABB);
+
+	ecs::EntityPool entity_pool{};
+
+	entity_pool.newEntity(
+		glm::vec3(-10.0f, 0.0f, 20.0f),
+		glm::vec3(0.0f, 0.0f, -0.5f),
+		glm::vec3(0),
+		notextures_model_shader,
+		wheel5
+	);
+
+	entity_pool.newEntity(
+		glm::vec3(-10.0f, 0.0f, -20.0f),
+		glm::vec3(0.0f, 0.0f, .5f),
+		glm::vec3(0),
+		notextures_model_shader,
+		wheel5
+	);
 #pragma endregion
 
 	while (!glfwWindowShouldClose(window)) {
-		proccessInput(window);
+		proccessInput();
 		context.updateTime();
 		const auto& bg_color = context.getBgColor();
 		glClearColor(bg_color.r, bg_color.g, bg_color.b, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 #pragma region ImGui Rendering
-		ImGuiPanelRendering();
+		ImGuiPanelRendering(entity_pool);
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 #pragma endregion
 
-		//backpack.draw(textured_models_shader);
-		tree.draw(material_models_shader);
-		//spaceship.draw(textured_models_shader);
+		entity_pool.iterate();
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

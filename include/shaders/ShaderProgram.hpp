@@ -15,6 +15,13 @@ namespace dlb {
 		ShaderProgram(int id)
 			:program_id(id) {}
 
+		ShaderProgram(const ShaderProgram& x) = delete;
+
+		ShaderProgram(ShaderProgram&& x) noexcept {
+			program_id = x.program_id;
+			x.program_id = 0;
+		}
+
 		~ShaderProgram() {
 			glDeleteProgram(program_id);
 		}

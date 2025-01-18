@@ -1,9 +1,12 @@
+#pragma once
+
 #include <type_traits>
 #include <vector>
 #include <memory>
 
 #include <glad/glad.h>
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include "Types.hpp"
 #include "Texture.hpp"
@@ -13,7 +16,8 @@ namespace scene {
 
 	enum ModelFlags {
 		UseMaterials = 1 << 0,
-		UseTextures = 1 << 2,
+		UseTextures = 1 << 1,
+		DrawAABB = 1 << 2,
 	};
 
 	struct Material {
@@ -28,6 +32,27 @@ namespace scene {
 		glm::vec3 position;
 		glm::vec3 normal;
 		glm::vec2 tex_coords;
+	};
+
+	struct BasicVertex {
+		glm::vec3 position;
+	};
+
+	class BasicMesh {
+	public:
+		BasicMesh() {
+			VAO = VBO = EBO = 0;
+		}
+
+	public:
+		void feed(std::vector<BasicVertex>&& vertices, std::vector<uint> indices);
+
+		void draw(const dlb::ShaderProgram& sp, const glm::mat4& transformation, const glm::vec3& color);
+
+	private:
+		std::vector<BasicVertex> vertices_;
+		std::vector<uint> indices_;
+		uint VAO, VBO, EBO;
 	};
 
 	static_assert(std::is_pod<Vertex>::value, "Vertex type must be POD.");
@@ -70,7 +95,10 @@ namespace scene {
 
 		void defaultSetup();
 		
-		void draw(const dlb::ShaderProgram& sp, uint flags);
+		void draw(const dlb::ShaderProgram& sp, const glm::mat4& transformation, uint flags);
+
+		glm::vec3 getMinCoords();
+		glm::vec3 getMaxCoords();
 
 	private:
 		std::vector<Vertex> vertices_;
